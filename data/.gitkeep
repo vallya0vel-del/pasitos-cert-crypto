@@ -1,0 +1,4 @@
+# Carpeta reservada para archivos CSV con datos de participantes.
+# ADVERTENCIA: Esta carpeta está ignorada en .gitignore por contener
+# información personal sensible (CURP, nombre completo, etc.).
+# No commitear ningún archivo CSV bajo ninguna circunstancia.

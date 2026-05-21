@@ -1,0 +1,68 @@
+# ─── Python ───────────────────────────────────────────────────────────────────
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+
+# ─── Entornos virtuales ───────────────────────────────────────────────────────
+.venv/
+venv/
+env/
+ENV/
+
+# ─── IDE ──────────────────────────────────────────────────────────────────────
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# ─── LLAVES CRIPTOGRÁFICAS — NUNCA COMMITEAR ─────────────────────────────────
+*.pem
+*.key
+*.p12
+*.pfx
+/keys/
+
+# ─── DATOS PERSONALES — NUNCA COMMITEAR ──────────────────────────────────────
+# La carpeta /data/ contiene CSVs con información sensible (CURP, nombre, etc.)
+/data/*
+!/data/.gitkeep
+
+# ─── Certificados generados (output) ─────────────────────────────────────────
+/output/
+/certificates/
+
+# ─── QR temporales ───────────────────────────────────────────────────────────
+/tmp/
+*.png
+
+# ─── Variables de entorno ─────────────────────────────────────────────────────
+.env
+.env.*
+!.env.example
+
+# ─── SO ───────────────────────────────────────────────────────────────────────
+.DS_Store
+Thumbs.db
+
+# ─── Cobertura de pruebas ─────────────────────────────────────────────────────
+.coverage
+.pytest_cache/
+htmlcov/
