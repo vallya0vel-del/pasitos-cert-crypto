@@ -153,13 +153,23 @@ def generate_qr(curp: str, folio: str, signature_hex: str) -> Image.Image:
     Returns:
         Imagen QR como PIL.Image.Image en modo RGB, lista para incrustar.
     """
+    subject = f"Verificaci\u00f3n de certificado {folio}"
+    body    = (
+        f"Solicito verificar la autenticidad del certificado con folio {folio}, "
+        f"emitido por Pasitos Education & Health A.C."
+    )
+    payload = (
+        f"mailto:info@pasitoseducation.com"
+        f"?subject={subject.replace(' ', '%20')}"
+        f"&body={body.replace(' ', '%20').replace(',', '%2C').replace('&', '%26')}"
+    )
     qr = qrcode.QRCode(
         version=None,
         error_correction=qrcode.constants.ERROR_CORRECT_M,
-        box_size=10,
+        box_size=6,
         border=2,
     )
-    qr.add_data(folio)
+    qr.add_data(payload)
     qr.make(fit=True)
     return qr.make_image(fill_color="black", back_color="white").convert("RGB")
 

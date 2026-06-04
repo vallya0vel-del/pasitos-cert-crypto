@@ -56,16 +56,26 @@ def _fmt_corto(fecha: str) -> str:
 
 def _qr_data_url(folio: str) -> str:
     """
-    Genera el QR del folio y lo retorna como data URL base64 (PNG).
-    Esto permite incrustar la imagen directamente en el HTML sin archivos temp.
+    Genera el QR con payload mailto y lo retorna como data URL base64 (PNG).
+    Al escanear abre la app de correo con asunto y cuerpo pre-llenados.
     """
+    subject = f"Verificaci\u00f3n de certificado {folio}"
+    body    = (
+        f"Solicito verificar la autenticidad del certificado con folio {folio}, "
+        f"emitido por Pasitos Education & Health A.C."
+    )
+    payload = (
+        f"mailto:info@pasitoseducation.com"
+        f"?subject={subject.replace(' ', '%20')}"
+        f"&body={body.replace(' ', '%20').replace(',', '%2C').replace('&', '%26')}"
+    )
     qr = qrcode.QRCode(
         version=None,
         error_correction=qrcode.constants.ERROR_CORRECT_M,
-        box_size=10,
+        box_size=6,
         border=2,
     )
-    qr.add_data(folio)
+    qr.add_data(payload)
     qr.make(fit=True)
     img = qr.make_image(fill_color="black", back_color="white").convert("RGB")
     buf = io.BytesIO()

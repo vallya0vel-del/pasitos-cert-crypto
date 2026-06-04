@@ -1,72 +1,74 @@
-# Pasitos — Sistema de Certificados Digitales
+# Pasitos - Sistema de Certificados Digitales
 
-Sistema open-source en Python para la emisión y validación de certificados digitales para **Pasitos Education & Health A.C.**, organización socio-formadora ubicada en Valle de los Molinos, Zapopan, Jalisco.
+Herramienta en Python para generar y verificar los certificados digitales de **Pasitos Education & Health A.C.**, con sede en Valle de los Molinos, Zapopan, Jalisco.
 
-> "Cada pequeño paso que damos junto a nuestros beneficiarios se convierte en un gran salto hacia un futuro lleno de oportunidades." — Pasitos A.C.
+Pasitos es una organización socio-formadora con más de 5 años ofreciendo servicios educativos y de salud a niñas, niños y adolescentes en situación vulnerable. Cuenta con 8 programas activos (Guardería Integral, Terapia de Lenguaje, Salud Visual, Salud Dental, Apoyo Psicosocial, Pasitos Bilingüe, entre otros), más de 6,000 beneficiarios y 500 voluntarios.
 
-Pasitos lleva más de 5 años brindando servicios educativos y de salud a niñas, niños y adolescentes en situación vulnerable a través de 8 programas activos (Guardería Integral, Terapia de Lenguaje, Salud Visual, Salud Dental, Apoyo Psicosocial, Pasitos Bilingüe, entre otros) con más de 6,000 beneficiarios y 500 voluntarios.
-
-Este sistema contribuye al **ODS 9 — Industria, Innovación e Infraestructura** garantizando seguridad, trazabilidad y no-repudio en los documentos digitales emitidos por la organización, mediante criptografía de curva elíptica (ECDSA SECP256R1).
-
----
-
-## Stack tecnológico
+## Stack
 
 | Componente | Librería |
 |---|---|
 | Firma digital | `cryptography` (ECDSA SECP256R1) |
 | Hashing | `hashlib` SHA-256 |
-| Contraseñas | `bcrypt` (Blowfish adaptativo + salting) |
-| QR codes | `qrcode[pil]` + `Pillow` |
-| PDF | `reportlab` |
+| Contrasenas | `bcrypt` |
+| QR | `qrcode[pil]` + `Pillow` |
+| PDF | `reportlab` + `playwright` |
 | Datos | `csv` (stdlib) |
 
-## Estructura del repositorio
+## Estructura
 
 ```
 pasitos-cert-crypto/
 ├── src/
-│   ├── auth/            # RBAC + bcrypt 
-│   ├── crypto/          # ECDSA sign/verify 
-│   ├── data_manager/    # Lector CSV 
-│   ├── pdf_generator/   # Builder PDF + QR
-│   └── main.py          # Orquestador CLI)
-├── data/                # CSVs
-├── docs/
+│   ├── auth/            # login y roles
+│   ├── crypto/          # firma y verificacion ECDSA
+│   ├── data_manager/    # lectura de CSV
+│   ├── pdf_generator/   # generacion de PDFs y QR
+│   ├── main.py          # CLI principal
+│   └── verificar.py     # verificacion local de certificados
+├── data/                # CSVs con datos (ignorado en git)
+├── docs/templates/      # plantillas HTML y assets
 ├── tests/
 └── requirements.txt
 ```
 
-## Instalación
+## Instalacion
 
 ```bash
 python -m venv .venv
 .venv\Scripts\activate      # Windows
 pip install -r requirements.txt
+playwright install chromium
 ```
 
-## Uso rápido
+## Uso
 
 ```bash
 python src/main.py
 ```
 
-El sistema solicitará credenciales. Solo roles `ADMIN` u `OPERATOR` pueden emitir certificados.
+Pide credenciales. Solo los roles `ADMIN` y `OPERATOR` pueden emitir certificados.
+
+Para verificar un certificado por folio:
+
+```bash
+python src/verificar.py VER-0001
+```
 
 ## Seguridad
 
-- Las llaves privadas (`.pem`) **nunca** se versionan (ver `.gitignore`).
-- Los CSVs con datos personales (CURP, nombre) están excluidos del repositorio.
-- Las contraseñas se almacenan exclusivamente como hashes bcrypt con salt único por usuario.
-- Las comparaciones de login usan tiempo constante para prevenir timing attacks.
+- Las llaves privadas (`.pem`) no se versionan (ver `.gitignore`).
+- Los CSVs con datos personales (CURP, nombre) no se incluyen en el repositorio.
+- Las contrasenas se guardan como hashes bcrypt.
+- El login usa comparacion en tiempo constante para evitar timing attacks.
 
 ## Contacto Pasitos
 
 - **Web:** [pasitosac.org](https://www.pasitosac.org/)
 - **Email:** info@pasitoseducation.com
 - **Tel:** +52 332 780 5441
-- **Dirección:** Valle de los Molinos, Zapopan, Jalisco
+- **Direccion:** Valle de los Molinos, Zapopan, Jalisco
 
 ## Licencia
 
-MIT — Proyecto académico, Tecnológico de Monterrey Campus Guadalajara (GDA)
+MIT - Proyecto academico, Tecnologico de Monterrey Campus Guadalajara (GDA).
