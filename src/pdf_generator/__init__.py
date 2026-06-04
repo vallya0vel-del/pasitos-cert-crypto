@@ -1,1 +1,3 @@
-# Módulo pdf_generator — implementación pendiente (Fase 2)
+from .certificate_builder import build_certificate, build_boleta, generate_qr
+
+__all__ = ["build_certificate", "build_boleta", "generate_qr"]
