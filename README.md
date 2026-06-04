@@ -26,12 +26,12 @@ Este sistema contribuye al **ODS 9 — Industria, Innovación e Infraestructura*
 ```
 pasitos-cert-crypto/
 ├── src/
-│   ├── auth/            # RBAC + bcrypt (Fase 1 ✅)
-│   ├── crypto/          # ECDSA sign/verify (Fase 1 ✅)
-│   ├── data_manager/    # Lector CSV (Fase 2)
-│   ├── pdf_generator/   # Builder PDF + QR (Fase 2)
-│   └── main.py          # Orquestador CLI (Fase 2)
-├── data/                # CSVs con datos sensibles (ignorado en git)
+│   ├── auth/            # RBAC + bcrypt 
+│   ├── crypto/          # ECDSA sign/verify 
+│   ├── data_manager/    # Lector CSV 
+│   ├── pdf_generator/   # Builder PDF + QR
+│   └── main.py          # Orquestador CLI)
+├── data/                # CSVs
 ├── docs/
 ├── tests/
 └── requirements.txt
@@ -69,4 +69,4 @@ El sistema solicitará credenciales. Solo roles `ADMIN` u `OPERATOR` pueden emit
 
 ## Licencia
 
-MIT — Proyecto académico, Universidad de Guadalajara / CUCEA.
+MIT — Proyecto académico, Tecnológico de Monterrey Campus Guadalajara (GDA)
