@@ -19,6 +19,7 @@ Flujo de ejecución:
 """
 
 import getpass
+import json
 import sys
 from pathlib import Path
 
@@ -40,7 +41,8 @@ from data_manager.csv_reader import (
     read_acreditados,
     read_catalogo,
 )
-from pdf_generator.certificate_builder import build_boleta, build_certificate
+from pdf_generator.certificate_builder import build_certificate
+from pdf_generator.boleta_html import build_boleta_html
 
 # ─── Rutas del proyecto ───────────────────────────────────────────────────────
 _BASE_DIR      = Path(__file__).parent.parent
@@ -49,10 +51,11 @@ _KEYS_DIR      = _BASE_DIR / "keys"
 _OUTPUT_DIR    = _BASE_DIR / "output"
 _TEMPLATES_DIR = _BASE_DIR / "docs" / "templates"
 
-_CSV_REGISTROS = _DATA_DIR / "registros_cursos.csv"
-_CSV_CATALOGO  = _DATA_DIR / "catalogo_cursos.csv"
-_PRIV_KEY_PATH = _KEYS_DIR / "pasitos_private.pem"
-_PUB_KEY_PATH  = _KEYS_DIR / "pasitos_public.pem"
+_CSV_REGISTROS  = _DATA_DIR / "registros_cursos.csv"
+_CSV_CATALOGO   = _DATA_DIR / "catalogo_cursos.csv"
+_PRIV_KEY_PATH  = _KEYS_DIR / "pasitos_private.pem"
+_PUB_KEY_PATH   = _KEYS_DIR / "pasitos_public.pem"
+_REGISTRO_JSON  = _OUTPUT_DIR / "certificados.json"
 
 _BANNER = """
 ╔══════════════════════════════════════════════════════╗
@@ -166,8 +169,8 @@ def _step_process(priv_key, pub_key) -> None:
                 record, signature_hex, _OUTPUT_DIR, _TEMPLATES_DIR
             )
 
-            # d. PDF — Boleta de Evaluación por Competencias
-            boleta_path = build_boleta(
+            # d. PDF — Boleta de Evaluación por Competencias (HTML/CSS)
+            boleta_path = build_boleta_html(
                 record, signature_hex, _OUTPUT_DIR, _TEMPLATES_DIR
             )
 
@@ -175,7 +178,15 @@ def _step_process(priv_key, pub_key) -> None:
             print(f"       ├─ {cert_path.name}")
             print(f"       └─ {boleta_path.name}")
             print()
-            emitidos.append(folio)
+            emitidos.append({
+                "folio":      folio,
+                "nombre":     nombre,
+                "curp":       record.get("CURP", ""),
+                "curso":      record.get("Curso", ""),
+                "hash":       cert_hash,
+                "firma_hex":  signature_hex,
+                "fecha_emision": record.get("Fecha de Emisión", ""),
+            })
 
         except Exception as exc:
             print(f"  {i:<4} {nombre:<32} {folio:<12} ✗ {exc}\n")
@@ -185,9 +196,24 @@ def _step_process(priv_key, pub_key) -> None:
     print(f"  Documentos guardados en: {_OUTPUT_DIR}\n")
 
     if emitidos:
+        # Persiste el registro de certificados emitidos para verificación local
+        registro_existente = {}
+        if _REGISTRO_JSON.exists():
+            try:
+                registro_existente = json.loads(_REGISTRO_JSON.read_text("utf-8"))
+            except Exception:
+                pass
+        for entry in emitidos:
+            registro_existente[entry["folio"]] = entry
+        _REGISTRO_JSON.write_text(
+            json.dumps(registro_existente, ensure_ascii=False, indent=2),
+            encoding="utf-8",
+        )
+        print(f"  Registro de verificación: {_REGISTRO_JSON.name}\n")
+
         print("  Folios de verificación emitidos:")
-        for f in emitidos:
-            print(f"    · {f}")
+        for e in emitidos:
+            print(f"    · {e['folio']}")
     print()
 
 
