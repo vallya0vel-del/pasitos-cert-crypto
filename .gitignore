@@ -44,6 +44,7 @@ ENV/
 # La carpeta /data/ contiene CSVs con información sensible (CURP, nombre, etc.)
 /data/*
 !/data/.gitkeep
+!/data/catalogo_cursos.csv
 
 # ─── Certificados generados (output) ─────────────────────────────────────────
 /output/
