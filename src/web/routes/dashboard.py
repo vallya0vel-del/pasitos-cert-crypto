@@ -43,7 +43,7 @@ def _build_stats() -> dict:
             registro = json.loads(_OUTPUT.read_text("utf-8"))
             stats["total_emitidos"] = len(registro)
             recientes = sorted(
-                registro.values(),
+                [{"folio": k, **v} for k, v in registro.items()],
                 key=lambda x: x.get("fecha_emision", ""),
                 reverse=True,
             )[:5]

@@ -28,8 +28,8 @@
           <th>Curso</th>
           <th>Calificación</th>
           <th>Fecha emisión</th>
-          <th>Folio verificación</th>
-          <th>Verificar</th>
+          <th>Folio</th>
+          <th>Acciones</th>
         </tr>
       </thead>
       <tbody>
@@ -45,8 +45,16 @@
           <td class="text-sm text-muted">{{ r.fecha_emision }}</td>
           <td class="td-mono">{{ r.folio }}</td>
           <td>
-            <a href="{{ url_for('verificar.verificar') }}?folio={{ r.folio }}"
-               class="btn btn-outline btn-sm">Verificar</a>
+            <div class="flex gap-3" style="flex-wrap: nowrap;">
+              <a href="{{ url_for('certificados.descargar', folio=r.folio) }}"
+                 class="btn btn-primary btn-sm"
+                 title="Descargar certificado + boleta en un solo PDF">
+                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+                Descargar
+              </a>
+              <a href="{{ url_for('verificar.verificar') }}?folio={{ r.folio }}"
+                 class="btn btn-outline btn-sm">Verificar</a>
+            </div>
           </td>
         </tr>
         {% endfor %}
@@ -62,4 +70,11 @@
     {% endif %}
   </div>
 </div>
+
+{% if registros %}
+<p class="text-sm text-muted mt-4">
+  El PDF descargable contiene el <strong>Certificado de Competencia Laboral</strong> y la
+  <strong>Boleta de Evaluación</strong> en un solo archivo de dos páginas.
+</p>
+{% endif %}
 {% endblock %}

@@ -20,6 +20,7 @@ Ajuste de coordenadas:
 import io
 from pathlib import Path
 
+import pypdf
 import qrcode
 import qrcode.constants
 from PIL import Image, ImageDraw, ImageFont
@@ -270,3 +271,25 @@ def build_certificate(
     img = _compose_certificate(record, signature_hex, template)
     _image_to_pdf(img, out_path)
     return out_path
+
+
+def merge_pdfs(pdf_paths: list[Path], output_path: Path) -> Path:
+    """
+    Combina una lista de PDFs en un único archivo.
+
+    Args:
+        pdf_paths:   Lista de rutas a los PDFs a combinar, en orden.
+        output_path: Ruta de salida para el PDF combinado.
+
+    Returns:
+        Path absoluto al PDF combinado generado.
+    """
+    writer = pypdf.PdfWriter()
+    for path in pdf_paths:
+        reader = pypdf.PdfReader(str(path))
+        for page in reader.pages:
+            writer.add_page(page)
+    output_path.parent.mkdir(parents=True, exist_ok=True)
+    with open(output_path, "wb") as f:
+        writer.write(f)
+    return output_path

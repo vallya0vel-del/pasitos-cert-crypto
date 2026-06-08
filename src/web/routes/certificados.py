@@ -5,7 +5,7 @@ routes/certificados.py — Listado y emisión de certificados
 import json
 import threading
 from pathlib import Path
-from flask import Blueprint, render_template, request, redirect, url_for, session, flash, jsonify
+from flask import Blueprint, render_template, request, redirect, url_for, session, flash, jsonify, send_file, abort
 
 from .auth import login_required
 
@@ -114,7 +114,7 @@ def _run_emit():
     try:
         from crypto.keys_manager import load_private_key, load_public_key, sign_data
         from data_manager.csv_reader import read_acreditados, read_catalogo, enrich_with_catalog, generate_certificate_hash
-        from pdf_generator.certificate_builder import build_certificate
+        from pdf_generator.certificate_builder import build_certificate, merge_pdfs
         from pdf_generator.boleta_html import build_boleta_html
 
         _OUTPUT.mkdir(parents=True, exist_ok=True)
@@ -152,8 +152,13 @@ def _run_emit():
             firma      = sign_data(priv, cert_hash.encode("utf-8"))
             firma_hex  = firma.hex()
 
-            build_certificate(record, firma_hex, _OUTPUT, templates_dir)
-            build_boleta_html(record, firma_hex, _OUTPUT, templates_dir)
+            cert_path   = build_certificate(record, firma_hex, _OUTPUT, templates_dir)
+            boleta_path = build_boleta_html(record, firma_hex, _OUTPUT, templates_dir)
+
+            # Fusionar certificado + boleta en un único PDF descargable
+            folio_safe  = folio.replace("/", "-")
+            merged_path = _OUTPUT / f"documento_{folio_safe}.pdf"
+            merge_pdfs([cert_path, boleta_path], merged_path)
 
             emitidos[folio] = {
                 "nombre":       record.get("Nombre Completo", ""),
@@ -165,7 +170,7 @@ def _run_emit():
                 "hash":         cert_hash,
                 "firma_hex":    firma_hex,
             }
-            log.append(f"  ✓ Certificado y boleta generados.")
+            log.append(f"  ✓ Certificado, boleta y PDF combinado generados.")
 
         _JSON.write_text(json.dumps(emitidos, ensure_ascii=False, indent=2), encoding="utf-8")
         log.append(f"Registro guardado en {_JSON.name}.")
@@ -191,3 +196,24 @@ def _load_registro() -> list[dict]:
         return sorted(result, key=lambda x: x.get("fecha_emision", ""), reverse=True)
     except Exception:
         return []
+
+
+@certificados_bp.route("/descargar/<folio>")
+@login_required()
+def descargar(folio: str):
+    """Sirve el PDF combinado (certificado + boleta) de un folio dado."""
+    folio_safe = folio.strip().upper().replace("/", "-")
+    # Intentar PDF combinado primero, luego solo certificado
+    merged = _OUTPUT / f"documento_{folio_safe}.pdf"
+    cert   = _OUTPUT / f"certificado_{folio_safe}.pdf"
+
+    if merged.exists():
+        path = merged
+        name = f"Pasitos_{folio_safe}.pdf"
+    elif cert.exists():
+        path = cert
+        name = f"certificado_{folio_safe}.pdf"
+    else:
+        abort(404)
+
+    return send_file(path, as_attachment=True, download_name=name, mimetype="application/pdf")
