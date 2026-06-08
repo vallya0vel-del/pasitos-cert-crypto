@@ -1,0 +1,191 @@
+{% extends "base.html" %}
+
+{% block page_title %}Ayuda{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <div>
+    <h1 class="page-title">Ayuda y referencia</h1>
+    <p class="page-subtitle">Guía de uso del sistema de certificados digitales</p>
+  </div>
+</div>
+
+<!-- Quick reference cards -->
+<div class="mvv-grid" style="margin-bottom:28px;">
+  <div class="mvv-card">
+    <div class="mvv-icon">📋</div>
+    <div class="mvv-title">Flujo básico</div>
+    <div class="mvv-text">
+      1. Carga el CSV de registros en <strong>Registros CSV</strong>.<br>
+      2. Ve a <strong>Certificados → Emitir</strong>.<br>
+      3. El sistema firma, genera el PDF y lo registra.<br>
+      4. Descarga el documento (certificado + boleta combinados).<br>
+      5. Cualquiera puede verificar el folio en <strong>/verificar</strong>.
+    </div>
+  </div>
+  <div class="mvv-card">
+    <div class="mvv-icon">🔑</div>
+    <div class="mvv-title">Llaves criptográficas</div>
+    <div class="mvv-text">
+      La llave privada vive en <span style="font-family:var(--font-mono);font-size:12px;">keys/private_key.pem</span>
+      y nunca se sube a git.<br><br>
+      Si se pierde, los certificados ya emitidos siguen siendo verificables
+      (la llave pública está en <span style="font-family:var(--font-mono);font-size:12px;">keys/public_key.pem</span>),
+      pero no se podrán emitir nuevos.
+    </div>
+  </div>
+  <div class="mvv-card">
+    <div class="mvv-icon">⚠️</div>
+    <div class="mvv-title">Datos personales</div>
+    <div class="mvv-text">
+      El archivo <span style="font-family:var(--font-mono);font-size:12px;">registros_cursos.csv</span>
+      contiene CURPs y nombres completos. Está excluido del repositorio git.
+      Realiza una copia de respaldo después de cada sesión de trabajo.
+    </div>
+  </div>
+  <div class="mvv-card">
+    <div class="mvv-icon">🔄</div>
+    <div class="mvv-title">Re-emisión de PDF</div>
+    <div class="mvv-text">
+      Si se pierde el PDF de un certificado ya registrado, usa
+      <strong>Re-emitir</strong> en la lista de certificados. Esto regenera
+      el PDF con la misma firma original — no crea un nuevo registro ni
+      cambia el folio.
+    </div>
+  </div>
+</div>
+
+<!-- CSV field guide -->
+<div class="card" style="margin-bottom:24px;">
+  <div class="card-header">
+    <h2 class="card-title">Formato del CSV de registros</h2>
+    <p class="card-subtitle">Cada columna requerida y su formato esperado</p>
+  </div>
+  <table>
+    <thead>
+      <tr>
+        <th style="width:200px;">Campo</th>
+        <th>Indicación</th>
+        <th style="width:220px;">Ejemplo</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td style="font-weight:600;">Nombre Completo</td>
+        <td style="color:var(--p-text-muted);">Apellido paterno, apellido materno, nombre(s)</td>
+        <td style="font-family:var(--font-mono);font-size:12px;color:var(--p-text-muted);">García López Ana María</td>
+      </tr>
+      <tr>
+        <td style="font-weight:600;">CURP</td>
+        <td style="color:var(--p-text-muted);">18 caracteres. Obligatorio para emitir certificado.</td>
+        <td style="font-family:var(--font-mono);font-size:12px;color:var(--p-text-muted);">GALA900101MJCRZN01</td>
+      </tr>
+      <tr>
+        <td style="font-weight:600;">Último Grado de Estudio</td>
+        <td style="color:var(--p-text-muted);">Primaria / Secundaria / Preparatoria / Técnico Superior / Licenciatura / Posgrado</td>
+        <td style="font-family:var(--font-mono);font-size:12px;color:var(--p-text-muted);">Licenciatura</td>
+      </tr>
+      <tr>
+        <td style="font-weight:600;">Institución / Guardería</td>
+        <td style="color:var(--p-text-muted);">Nombre del centro donde labora. Si no aplica: <code>N/A</code></td>
+        <td style="font-family:var(--font-mono);font-size:12px;color:var(--p-text-muted);">Guardería Pasitos</td>
+      </tr>
+      <tr>
+        <td style="font-weight:600;">Cargo o Puesto</td>
+        <td style="color:var(--p-text-muted);">Educadora / Asistente / Directora / Otro. Si no aplica: <code>N/A</code></td>
+        <td style="font-family:var(--font-mono);font-size:12px;color:var(--p-text-muted);">Educadora</td>
+      </tr>
+      <tr>
+        <td style="font-weight:600;">Curso</td>
+        <td style="color:var(--p-text-muted);">Nombre exacto del curso según el catálogo</td>
+        <td style="font-family:var(--font-mono);font-size:12px;color:var(--p-text-muted);">Puericultura</td>
+      </tr>
+      <tr>
+        <td style="font-weight:600;">Calificación</td>
+        <td style="color:var(--p-text-muted);">Número de 0 a 10 con un decimal</td>
+        <td style="font-family:var(--font-mono);font-size:12px;color:var(--p-text-muted);">8.5</td>
+      </tr>
+      <tr>
+        <td style="font-weight:600;">Resultado</td>
+        <td style="color:var(--p-text-muted);">
+          <span class="badge badge-green">Acreditado</span> — calificación ≥ 7<br>
+          <span class="badge badge-red">No Acreditado</span> — calificación &lt; 7
+        </td>
+        <td style="font-family:var(--font-mono);font-size:12px;color:var(--p-text-muted);">Acreditado</td>
+      </tr>
+      <tr>
+        <td style="font-weight:600;">No. de Certificado</td>
+        <td style="color:var(--p-text-muted);">Formato <code>PAC-AAAA-NNNN</code></td>
+        <td style="font-family:var(--font-mono);font-size:12px;color:var(--p-text-muted);">PAC-2025-0001</td>
+      </tr>
+      <tr>
+        <td style="font-weight:600;">Folio Verificación</td>
+        <td style="color:var(--p-text-muted);">Formato <code>VER-NNNN</code> — identificador único para verificación pública</td>
+        <td style="font-family:var(--font-mono);font-size:12px;color:var(--p-text-muted);">VER-0001</td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+
+<!-- Roles quick ref -->
+<div class="card" style="margin-bottom:24px;">
+  <div class="card-header">
+    <h2 class="card-title">Credenciales de demostración</h2>
+    <p class="card-subtitle">Solo para uso en entorno de pruebas — no usar en producción</p>
+  </div>
+  <table>
+    <thead>
+      <tr><th>Usuario</th><th>Contraseña</th><th>Rol</th><th>Puede hacer</th></tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td style="font-family:var(--font-mono);">admin_pasitos</td>
+        <td style="font-family:var(--font-mono);">Admin@Pasitos2024!</td>
+        <td><span class="badge badge-purple">admin</span></td>
+        <td style="font-size:12.5px;color:var(--p-text-muted);">Todo: emitir, eliminar, gestionar usuarios, catálogo, CSV</td>
+      </tr>
+      <tr>
+        <td style="font-family:var(--font-mono);">operador01</td>
+        <td style="font-family:var(--font-mono);">Oper@2024#Zapopan</td>
+        <td><span class="badge badge-blue">operator</span></td>
+        <td style="font-size:12.5px;color:var(--p-text-muted);">Emitir, re-emitir, editar catálogo, subir CSV</td>
+      </tr>
+      <tr>
+        <td style="font-family:var(--font-mono);">visor01</td>
+        <td style="font-family:var(--font-mono);">View@2024$ODS9</td>
+        <td><span class="badge badge-gray">viewer</span></td>
+        <td style="font-size:12.5px;color:var(--p-text-muted);">Solo lectura: ver certificados, catálogo, verificar folios</td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+
+<!-- Formats reference -->
+<div class="card">
+  <div class="card-header">
+    <h2 class="card-title">Comandos de línea de comandos</h2>
+    <p class="card-subtitle">El sistema también tiene una interfaz CLI para uso sin navegador</p>
+  </div>
+  <div style="padding-bottom:4px;">
+    <table>
+      <thead>
+        <tr><th>Comando</th><th>Qué hace</th></tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td style="font-family:var(--font-mono);font-size:12.5px;">python run_web.py</td>
+          <td style="font-size:13px;color:var(--p-text-muted);">Inicia el servidor web en <code>http://localhost:5000</code></td>
+        </tr>
+        <tr>
+          <td style="font-family:var(--font-mono);font-size:12.5px;">python src/main.py</td>
+          <td style="font-size:13px;color:var(--p-text-muted);">Interfaz CLI: emitir certificados desde terminal</td>
+        </tr>
+        <tr>
+          <td style="font-family:var(--font-mono);font-size:12.5px;">python src/verificar.py VER-0001</td>
+          <td style="font-size:13px;color:var(--p-text-muted);">Verifica un folio desde terminal, sin servidor</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

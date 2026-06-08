@@ -74,6 +74,12 @@
         Acerca de Pasitos
       </a>
 
+      <a href="{{ url_for('ayuda.index') }}"
+         class="nav-link {% if request.endpoint == 'ayuda.index' %}active{% endif %}">
+        {% include 'icons/help.svg' %}
+        Ayuda
+      </a>
+
       {% if role == 'admin' %}
       <span class="nav-section-label">Administración</span>
       <a href="{{ url_for('admin.usuarios') }}"

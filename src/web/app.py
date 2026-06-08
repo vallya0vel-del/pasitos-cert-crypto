@@ -23,6 +23,7 @@ from .routes.verificar import verificar_bp
 from .routes.catalogo import catalogo_bp
 from .routes.datos import datos_bp
 from .routes.nosotros import nosotros_bp
+from .routes.ayuda import ayuda_bp
 
 
 def create_app() -> Flask:
@@ -33,7 +34,16 @@ def create_app() -> Flask:
     )
 
     # ─── Configuración ────────────────────────────────────────────────────────
-    app.config["SECRET_KEY"] = os.urandom(32)
+    secret = os.environ.get("PASITOS_SECRET_KEY")
+    if not secret:
+        import warnings
+        warnings.warn(
+            "PASITOS_SECRET_KEY no está definida. "
+            "Las sesiones se invalidarán al reiniciar el servidor.",
+            stacklevel=2,
+        )
+        secret = os.urandom(32)
+    app.config["SECRET_KEY"] = secret
     app.config["SESSION_TYPE"] = "filesystem"
     app.config["SESSION_FILE_DIR"] = str(Path(__file__).parent.parent.parent / ".flask_sessions")
     app.config["SESSION_PERMANENT"] = False
@@ -50,5 +60,6 @@ def create_app() -> Flask:
     app.register_blueprint(catalogo_bp)
     app.register_blueprint(datos_bp)
     app.register_blueprint(nosotros_bp)
+    app.register_blueprint(ayuda_bp)
 
     return app
