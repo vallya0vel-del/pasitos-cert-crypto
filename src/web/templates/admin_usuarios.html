@@ -1,0 +1,76 @@
+{% extends "base.html" %}
+{% block title %}Gestión de usuarios — Pasitos{% endblock %}
+{% block page_title %}Gestión de usuarios{% endblock %}
+
+{% block content %}
+<div class="page-header flex justify-between items-center" style="flex-wrap:wrap; gap:12px;">
+  <div>
+    <h1>Usuarios del sistema</h1>
+    <p>{{ users | length }} usuario(s) registrado(s).</p>
+  </div>
+  <a href="{{ url_for('admin.nuevo_usuario') }}" class="btn btn-primary">
+    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+    Nuevo usuario
+  </a>
+</div>
+
+<div class="card">
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th>Usuario</th>
+          <th>Rol</th>
+          <th>Permisos</th>
+          <th>Acciones</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for u in users %}
+        <tr>
+          <td style="font-weight: 600; font-family: var(--font-mono); font-size: 13px;">
+            {{ u.username }}
+            {% if u.username == username %}
+            <span class="badge badge-purple" style="margin-left: 6px; font-size: 10px;">Tú</span>
+            {% endif %}
+          </td>
+          <td>
+            {% if u.role == 'admin' %}
+              <span class="badge badge-purple">ADMIN</span>
+            {% elif u.role == 'operator' %}
+              <span class="badge badge-green">OPERATOR</span>
+            {% else %}
+              <span class="badge badge-yellow">VIEWER</span>
+            {% endif %}
+          </td>
+          <td class="text-sm text-muted">
+            {% if u.role == 'admin' %}Llaves, emisión, usuarios
+            {% elif u.role == 'operator' %}Emisión de certificados
+            {% else %}Solo consulta
+            {% endif %}
+          </td>
+          <td>
+            {% if u.username != username %}
+            <form method="POST"
+                  action="{{ url_for('admin.eliminar_usuario', uname=u.username) }}"
+                  onsubmit="return confirm('¿Eliminar usuario {{ u.username }}?');"
+                  style="display:inline;">
+              <button type="submit" class="btn btn-danger btn-sm">Eliminar</button>
+            </form>
+            {% else %}
+            <span class="text-sm text-muted">—</span>
+            {% endif %}
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<div class="alert alert-info mt-4">
+  <strong>Nota:</strong> En esta versión de demostración, los usuarios se almacenan en memoria.
+  Se restablecen al reiniciar el servidor. En producción, persiste el almacén en una base de datos.
+</div>
+
+{% endblock %}

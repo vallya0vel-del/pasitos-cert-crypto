@@ -1,0 +1,48 @@
+"""
+app.py
+------
+Aplicación Flask principal para el Sistema de Certificados Digitales
+de Pasitos Education & Health A.C.
+"""
+
+import os
+import sys
+from pathlib import Path
+
+# Agregar /src al path para importar módulos existentes
+sys.path.insert(0, str(Path(__file__).parent.parent))
+
+from flask import Flask
+from flask_session import Session
+
+from .routes.auth import auth_bp
+from .routes.dashboard import dashboard_bp
+from .routes.certificados import certificados_bp
+from .routes.admin import admin_bp
+from .routes.verificar import verificar_bp
+
+
+def create_app() -> Flask:
+    app = Flask(
+        __name__,
+        template_folder="templates",
+        static_folder="static",
+    )
+
+    # ─── Configuración ────────────────────────────────────────────────────────
+    app.config["SECRET_KEY"] = os.urandom(32)
+    app.config["SESSION_TYPE"] = "filesystem"
+    app.config["SESSION_FILE_DIR"] = str(Path(__file__).parent.parent.parent / ".flask_sessions")
+    app.config["SESSION_PERMANENT"] = False
+    app.config["SESSION_USE_SIGNER"] = True
+
+    Session(app)
+
+    # ─── Blueprints ───────────────────────────────────────────────────────────
+    app.register_blueprint(auth_bp)
+    app.register_blueprint(dashboard_bp)
+    app.register_blueprint(certificados_bp)
+    app.register_blueprint(admin_bp)
+    app.register_blueprint(verificar_bp)
+
+    return app

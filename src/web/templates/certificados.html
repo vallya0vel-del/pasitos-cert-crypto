@@ -1,0 +1,65 @@
+{% extends "base.html" %}
+{% block title %}Certificados emitidos — Pasitos{% endblock %}
+{% block page_title %}Certificados emitidos{% endblock %}
+
+{% block content %}
+<div class="page-header flex justify-between items-center" style="flex-wrap:wrap; gap:12px;">
+  <div>
+    <h1>Registro de certificados</h1>
+    <p>{{ registros | length }} certificado(s) con firma ECDSA almacenados.</p>
+  </div>
+  {% if role in ['admin', 'operator'] %}
+  <a href="{{ url_for('certificados.emitir') }}" class="btn btn-primary">
+    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12l7-7 7 7"/></svg>
+    Emitir nuevos
+  </a>
+  {% endif %}
+</div>
+
+<div class="card">
+  <div class="table-wrap">
+    {% if registros %}
+    <table>
+      <thead>
+        <tr>
+          <th>No. certificado</th>
+          <th>Nombre</th>
+          <th>CURP</th>
+          <th>Curso</th>
+          <th>Calificación</th>
+          <th>Fecha emisión</th>
+          <th>Folio verificación</th>
+          <th>Verificar</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for r in registros %}
+        <tr>
+          <td class="td-mono">{{ r.no_cert or '—' }}</td>
+          <td style="font-weight: 600;">{{ r.nombre }}</td>
+          <td class="td-mono" style="font-size: 11.5px;">{{ r.curp }}</td>
+          <td>{{ r.curso }}</td>
+          <td>
+            <span class="badge badge-green">{{ r.calificacion }}/10</span>
+          </td>
+          <td class="text-sm text-muted">{{ r.fecha_emision }}</td>
+          <td class="td-mono">{{ r.folio }}</td>
+          <td>
+            <a href="{{ url_for('verificar.verificar') }}?folio={{ r.folio }}"
+               class="btn btn-outline btn-sm">Verificar</a>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+    {% else %}
+    <div class="card-body text-muted text-sm" style="padding: 32px; text-align: center;">
+      No hay certificados emitidos en el sistema aún.<br><br>
+      {% if role in ['admin', 'operator'] %}
+      <a href="{{ url_for('certificados.emitir') }}" class="btn btn-primary">Emitir certificados →</a>
+      {% endif %}
+    </div>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}

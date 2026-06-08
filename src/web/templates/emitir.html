@@ -1,0 +1,105 @@
+{% extends "base.html" %}
+{% block title %}Emitir certificados — Pasitos{% endblock %}
+{% block page_title %}Emitir certificados{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <h1>Emitir certificados</h1>
+  <p>Genera y firma digitalmente los certificados de todos los participantes acreditados en el CSV.</p>
+</div>
+
+<!-- ── Checklist de prerequisitos ── -->
+<div class="card mb-6">
+  <div class="card-header"><h3>Estado del sistema</h3></div>
+  <div class="card-body">
+    <div class="steps">
+
+      <div class="step {{ 'done' if csv_ok else 'active' }}">
+        <div class="step-dot">{% if csv_ok %}✓{% else %}1{% endif %}</div>
+        <div>
+          <strong>Archivos CSV</strong><br>
+          <span class="text-sm text-muted">
+            {% if csv_ok %}
+              registros_cursos.csv y catalogo_cursos.csv encontrados.
+            {% else %}
+              No se encontraron los archivos CSV en /data. Verifica que existan.
+            {% endif %}
+          </span>
+        </div>
+      </div>
+
+      <div class="step {{ 'done' if priv_exists and pub_exists else 'active' }}">
+        <div class="step-dot">{% if priv_exists and pub_exists %}✓{% else %}2{% endif %}</div>
+        <div>
+          <strong>Par de llaves ECDSA</strong><br>
+          <span class="text-sm text-muted">
+            {% if priv_exists and pub_exists %}
+              Llave privada y pública encontradas en /keys.
+            {% elif not priv_exists and not pub_exists %}
+              No existen llaves.
+              {% if role == 'admin' %}Genera el par de llaves a continuación.{% else %}Contacta al ADMIN.{% endif %}
+            {% else %}
+              Solo se encontró una de las dos llaves. El par puede estar corrupto.
+            {% endif %}
+          </span>
+        </div>
+      </div>
+
+      <div class="step {{ 'done' if csv_ok and priv_exists and pub_exists else '' }}">
+        <div class="step-dot">3</div>
+        <div>
+          <strong>Listo para emitir</strong><br>
+          <span class="text-sm text-muted">Sistema listo para firmar y generar PDFs.</span>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<!-- ── Acciones ── -->
+<div class="grid-2" style="gap: 16px;">
+
+  {% if role == 'admin' and (not priv_exists or not pub_exists) %}
+  <div class="card">
+    <div class="card-header"><h3>Generar par de llaves</h3></div>
+    <div class="card-body">
+      <p class="text-sm text-muted mb-4">
+        Genera un nuevo par de llaves ECDSA SECP256R1 (privada + pública).
+        La llave privada se guarda en <code>/keys</code> sin contraseña para esta demo.
+        <strong>Solo el ADMIN puede realizar esta operación.</strong>
+      </p>
+      <form method="POST">
+        <input type="hidden" name="action" value="generar_llaves">
+        <button type="submit" class="btn btn-outline">
+          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg>
+          Generar llaves ECDSA
+        </button>
+      </form>
+    </div>
+  </div>
+  {% endif %}
+
+  <div class="card">
+    <div class="card-header"><h3>Emisión de certificados</h3></div>
+    <div class="card-body">
+      <p class="text-sm text-muted mb-4">
+        Lee el CSV, filtra participantes <strong>Acreditados</strong>, firma cada certificado
+        con ECDSA y genera los PDFs del Certificado de Competencia Laboral y la Boleta de Evaluación.
+        Los folios ya emitidos anteriormente serán omitidos.
+      </p>
+      <form method="POST">
+        <input type="hidden" name="action" value="emitir">
+        <button type="submit"
+                class="btn btn-green"
+                {% if not csv_ok or not priv_exists or not pub_exists %}disabled title="Requisitos incompletos"{% endif %}>
+          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12l7-7 7 7"/></svg>
+          Iniciar emisión
+        </button>
+      </form>
+    </div>
+  </div>
+
+</div>
+
+{% endblock %}

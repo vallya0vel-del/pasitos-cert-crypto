@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{% block title %}Pasitos — Certificados{% endblock %}</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+  {% block head %}{% endblock %}
+</head>
+<body>
+<div class="layout">
+
+  <!-- ── Sidebar ── -->
+  <aside class="sidebar">
+    <div class="sidebar-brand">
+      <img src="{{ url_for('static', filename='img/logo.png') }}" alt="Pasitos logo">
+      <div class="sidebar-brand-text">
+        <span class="brand-name">Pasitos</span>
+        <span class="brand-sub">Certificados Digitales</span>
+      </div>
+    </div>
+
+    <nav>
+      <span class="nav-section-label">Principal</span>
+
+      <a href="{{ url_for('dashboard.index') }}"
+         class="nav-link {% if request.endpoint == 'dashboard.index' %}active{% endif %}">
+        {% include 'icons/home.svg' %}
+        Panel principal
+      </a>
+
+      <a href="{{ url_for('certificados.index') }}"
+         class="nav-link {% if request.endpoint in ['certificados.index'] %}active{% endif %}">
+        {% include 'icons/certificate.svg' %}
+        Certificados
+      </a>
+
+      {% if role in ['admin', 'operator'] %}
+      <a href="{{ url_for('certificados.emitir') }}"
+         class="nav-link {% if 'emitir' in request.endpoint %}active{% endif %}">
+        {% include 'icons/emit.svg' %}
+        Emitir certificados
+      </a>
+      {% endif %}
+
+      <a href="{{ url_for('verificar.verificar') }}"
+         class="nav-link {% if request.endpoint == 'verificar.verificar' %}active{% endif %}">
+        {% include 'icons/check.svg' %}
+        Verificar folio
+      </a>
+
+      {% if role == 'admin' %}
+      <span class="nav-section-label">Administración</span>
+      <a href="{{ url_for('admin.usuarios') }}"
+         class="nav-link {% if 'admin' in request.endpoint %}active{% endif %}">
+        {% include 'icons/users.svg' %}
+        Usuarios
+      </a>
+      {% endif %}
+    </nav>
+
+    <div class="sidebar-footer">
+      Pasitos Education &amp; Health A.C.<br>
+      Zapopan, Jalisco
+    </div>
+  </aside>
+
+  <!-- ── Topbar ── -->
+  <header class="topbar">
+    <span class="topbar-title">{% block page_title %}{% endblock %}</span>
+    <div class="topbar-user">
+      <div class="topbar-user-info">
+        <span class="u-name">{{ username }}</span>
+        <span class="u-role">{{ role }}</span>
+      </div>
+      <div class="topbar-avatar">{{ username[0].upper() }}</div>
+      <a href="{{ url_for('auth.logout') }}" class="btn-logout">Salir</a>
+    </div>
+  </header>
+
+  <!-- ── Main ── -->
+  <main class="main">
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% for category, message in messages %}
+        <div class="alert alert-{{ category }}">{{ message }}</div>
+      {% endfor %}
+    {% endwith %}
+
+    {% block content %}{% endblock %}
+  </main>
+
+</div>
+{% block scripts %}{% endblock %}
+</body>
+</html>

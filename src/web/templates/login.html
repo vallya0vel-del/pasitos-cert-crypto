@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Iniciar sesión — Pasitos</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+<div class="login-page">
+
+  <!-- ── Panel visual izquierdo ── -->
+  <div class="login-visual">
+    <div class="login-visual-brand">
+      <img src="{{ url_for('static', filename='img/logo.png') }}" alt="Pasitos">
+      <div class="login-visual-brand-text">
+        <span class="lv-name">Pasitos Education &amp; Health A.C.</span>
+        <span class="lv-sub">Sistema de Certificados Digitales</span>
+      </div>
+    </div>
+
+    <h1 class="login-visual-headline">
+      Certificados<br>
+      con firma<br>
+      <span>criptográfica</span>.
+    </h1>
+    <p class="login-visual-sub">
+      Cada certificado está respaldado por una firma digital ECDSA SECP256R1,
+      verificable de forma independiente con la llave pública de Pasitos.
+    </p>
+
+    <div class="login-badges">
+      <span class="login-badge">ECDSA SECP256R1</span>
+      <span class="login-badge">SHA-256</span>
+      <span class="login-badge">bcrypt</span>
+      <span class="login-badge">RFC 6979</span>
+      <span class="login-badge">ODS 9</span>
+    </div>
+  </div>
+
+  <!-- ── Panel del formulario ── -->
+  <div class="login-form-panel">
+    <div class="login-form-inner">
+      <h2>Bienvenido</h2>
+      <p class="login-sub">Inicia sesión para continuar al sistema.</p>
+
+      {% if error %}
+      <div class="alert alert-error">{{ error }}</div>
+      {% endif %}
+
+      <form method="POST" action="{{ url_for('auth.login') }}" autocomplete="off" novalidate>
+        <div class="form-group">
+          <label for="username">Usuario</label>
+          <input type="text" id="username" name="username"
+                 placeholder="Ej. admin_pasitos" required autofocus>
+        </div>
+
+        <div class="form-group">
+          <label for="password">Contraseña</label>
+          <input type="password" id="password" name="password"
+                 placeholder="••••••••••••" required>
+        </div>
+
+        <button type="submit" class="btn btn-primary w-full" style="justify-content:center; margin-top:8px;">
+          Iniciar sesión
+        </button>
+      </form>
+
+      <div style="margin-top: 28px; padding-top: 18px; border-top: 1px solid var(--p-border);">
+        <p class="text-sm text-muted" style="margin-bottom: 10px; font-weight: 600;">Verificar un certificado:</p>
+        <a href="{{ url_for('verificar.verificar') }}" class="btn btn-outline w-full" style="justify-content:center;">
+          Verificar folio público →
+        </a>
+      </div>
+
+      <p style="margin-top: 32px; font-size: 12px; color: var(--p-text-muted); text-align: center;">
+        Pasitos Education &amp; Health A.C. · Zapopan, Jalisco<br>
+        Proyecto académico — Tec de Monterrey Campus GDA
+      </p>
+    </div>
+  </div>
+
+</div>
+</body>
+</html>

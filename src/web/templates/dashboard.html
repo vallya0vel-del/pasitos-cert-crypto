@@ -1,0 +1,134 @@
+{% extends "base.html" %}
+{% block title %}Panel principal — Pasitos{% endblock %}
+{% block page_title %}Panel principal{% endblock %}
+
+{% block content %}
+<div class="role-bar"></div>
+
+<div class="page-header">
+  <h1>Bienvenido, {{ username }}</h1>
+  <p>Resumen del sistema de certificados digitales de Pasitos Education &amp; Health A.C.</p>
+</div>
+
+<!-- ── Métricas ── -->
+<div class="stat-grid">
+  <div class="stat-card purple">
+    <span class="stat-label">Certificados emitidos</span>
+    <span class="stat-value">{{ stats.total_emitidos }}</span>
+    <span class="stat-sub">con firma ECDSA válida</span>
+  </div>
+
+  <div class="stat-card green">
+    <span class="stat-label">Participantes acreditados</span>
+    <span class="stat-value">{{ stats.total_acreditados }}</span>
+    <span class="stat-sub">en el CSV actual</span>
+  </div>
+
+  <div class="stat-card">
+    <span class="stat-label">Total registros</span>
+    <span class="stat-value">{{ stats.total_registros }}</span>
+    <span class="stat-sub">inscritos en el CSV</span>
+  </div>
+
+  <div class="stat-card">
+    <span class="stat-label">Cursos activos</span>
+    <span class="stat-value">{{ stats.por_curso | length if stats.por_curso else '—' }}</span>
+    <span class="stat-sub">con certificados emitidos</span>
+  </div>
+</div>
+
+<!-- ── Grid inferior ── -->
+<div class="grid-2">
+
+  <!-- Recientes -->
+  <div class="card">
+    <div class="card-header">
+      <h3>Últimas emisiones</h3>
+      <a href="{{ url_for('certificados.index') }}" class="btn btn-outline btn-sm">Ver todos</a>
+    </div>
+    <div class="table-wrap">
+      {% if stats.recientes %}
+      <table>
+        <thead>
+          <tr>
+            <th>Nombre</th>
+            <th>Folio</th>
+            <th>Fecha</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for c in stats.recientes %}
+          <tr>
+            <td>{{ c.nombre }}</td>
+            <td class="td-mono">{{ c.no_cert or '—' }}</td>
+            <td class="text-sm text-muted">{{ c.fecha_emision }}</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+      {% else %}
+      <div class="card-body text-muted text-sm">
+        No hay certificados emitidos aún.
+        {% if role in ['admin', 'operator'] %}
+        <br><a href="{{ url_for('certificados.emitir') }}">Emitir ahora →</a>
+        {% endif %}
+      </div>
+      {% endif %}
+    </div>
+  </div>
+
+  <!-- Distribución por curso -->
+  <div class="card">
+    <div class="card-header">
+      <h3>Distribución por curso</h3>
+    </div>
+    <div class="card-body">
+      {% if stats.por_curso %}
+        {% for curso, count in stats.por_curso.items() %}
+        <div style="margin-bottom: 14px;">
+          <div class="flex justify-between text-sm" style="margin-bottom: 5px;">
+            <span style="font-weight:600;">{{ curso }}</span>
+            <span class="text-muted">{{ count }} cert.</span>
+          </div>
+          {% set total = stats.total_emitidos if stats.total_emitidos > 0 else 1 %}
+          {% set pct = (count / total * 100) | round(1) %}
+          <div style="background: var(--p-border); border-radius: 4px; height: 7px; overflow:hidden;">
+            <div style="background: linear-gradient(90deg, var(--p-purple), var(--p-green));
+                        width: {{ pct }}%; height: 100%; border-radius: 4px; transition: width .6s ease;">
+            </div>
+          </div>
+          <div class="text-sm text-muted" style="margin-top:3px;">{{ pct }}%</div>
+        </div>
+        {% endfor %}
+      {% else %}
+      <p class="text-sm text-muted">Sin datos de distribución todavía.</p>
+      {% endif %}
+    </div>
+  </div>
+
+</div>
+
+<!-- ── Acciones rápidas ── -->
+{% if role in ['admin', 'operator'] %}
+<div class="card" style="margin-top: 20px;">
+  <div class="card-header"><h3>Acciones rápidas</h3></div>
+  <div class="card-body flex gap-3">
+    <a href="{{ url_for('certificados.emitir') }}" class="btn btn-primary">
+      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12l7-7 7 7"/></svg>
+      Emitir certificados
+    </a>
+    <a href="{{ url_for('verificar.verificar') }}" class="btn btn-outline">
+      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
+      Verificar folio
+    </a>
+    {% if role == 'admin' %}
+    <a href="{{ url_for('admin.usuarios') }}" class="btn btn-outline">
+      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>
+      Gestionar usuarios
+    </a>
+    {% endif %}
+  </div>
+</div>
+{% endif %}
+
+{% endblock %}

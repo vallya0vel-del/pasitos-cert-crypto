@@ -6,3 +6,7 @@ bcrypt>=4.1.2              # Hashing de contraseñas con salting automático
 qrcode[pil]>=7.4.2         # Generación de códigos QR con soporte Pillow
 Pillow>=10.3.0             # Manipulación de imágenes (plantilla base del certificado)
 reportlab>=4.2.0           # Generación de PDFs con texto, imágenes y QR incrustados
+
+# ─── Web ──────────────────────────────────────────────────────────────────────
+Flask>=3.0.0               # Servidor web y enrutamiento
+Flask-Session>=0.8.0       # Sesiones del lado servidor (no en cookie)
