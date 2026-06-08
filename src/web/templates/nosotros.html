@@ -1,0 +1,151 @@
+{% extends "base.html" %}
+
+{% block page_title %}Acerca de Pasitos{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <div>
+    <h1 class="page-title">Acerca de Pasitos</h1>
+    <p class="page-subtitle">Pasitos Education &amp; Health A.C. — Zapopan, Jalisco</p>
+  </div>
+</div>
+
+<!-- Misión / Visión / Valores -->
+<div class="mvv-grid">
+  <div class="mvv-card">
+    <div class="mvv-icon">🎯</div>
+    <div class="mvv-title">Misión</div>
+    <div class="mvv-text">
+      Brindar atención integral a la infancia y sus familias en situación de vulnerabilidad,
+      promoviendo su desarrollo educativo, de salud y bienestar, con un enfoque de derechos
+      humanos y desde la perspectiva de género.
+    </div>
+  </div>
+
+  <div class="mvv-card">
+    <div class="mvv-icon">🌟</div>
+    <div class="mvv-title">Visión</div>
+    <div class="mvv-text">
+      Ser una organización líder en Jalisco en el desarrollo integral de la infancia y sus
+      familias, reconocida por la calidad e impacto de sus programas y por su compromiso con
+      la equidad social.
+    </div>
+  </div>
+
+  <div class="mvv-card">
+    <div class="mvv-icon">💎</div>
+    <div class="mvv-title">Valores</div>
+    <div class="mvv-text">
+      Respeto a la dignidad humana · Equidad e inclusión · Calidez y empatía ·
+      Transparencia y rendición de cuentas · Trabajo en equipo · Innovación social.
+    </div>
+  </div>
+
+  <div class="mvv-card">
+    <div class="mvv-icon">📋</div>
+    <div class="mvv-title">Objetivos</div>
+    <div class="mvv-text">
+      Fortalecer las capacidades de madres, padres y cuidadores; garantizar acceso a
+      servicios de salud preventiva; fomentar el desarrollo educativo; y promover la
+      participación comunitaria activa.
+    </div>
+  </div>
+</div>
+
+<!-- Sobre este sistema -->
+<div class="card" style="margin-bottom:24px;">
+  <div class="card-header">
+    <h2 class="card-title">Sistema de Certificados Digitales</h2>
+  </div>
+  <div style="padding:0 0 4px;display:grid;grid-template-columns:1fr 1fr;gap:20px;">
+    <div>
+      <p style="font-size:13.5px;color:var(--p-text-muted);line-height:1.7;margin-bottom:12px;">
+        Este sistema permite a Pasitos Education &amp; Health A.C. emitir y verificar
+        certificados de capacitación con firma digital criptográfica, garantizando la
+        autenticidad e integridad de cada documento expedido.
+      </p>
+      <p style="font-size:13.5px;color:var(--p-text-muted);line-height:1.7;">
+        Cada certificado incluye una firma ECDSA (curva SECP256R1) vinculada al CURP del
+        participante, el curso y el número de folio único, lo que hace imposible su
+        falsificación sin acceso a la llave privada de la organización.
+      </p>
+    </div>
+    <div>
+      <table style="font-size:13px;width:100%;border-collapse:collapse;">
+        <tbody>
+          <tr style="border-bottom:1px solid var(--p-border);">
+            <td style="padding:9px 12px 9px 0;color:var(--p-text-muted);white-space:nowrap;">Algoritmo de firma</td>
+            <td style="padding:9px 0;font-family:var(--font-mono);color:var(--p-purple-dark);font-weight:600;">ECDSA SECP256R1</td>
+          </tr>
+          <tr style="border-bottom:1px solid var(--p-border);">
+            <td style="padding:9px 12px 9px 0;color:var(--p-text-muted);">Hash del mensaje</td>
+            <td style="padding:9px 0;font-family:var(--font-mono);color:var(--p-purple-dark);font-weight:600;">SHA-256</td>
+          </tr>
+          <tr style="border-bottom:1px solid var(--p-border);">
+            <td style="padding:9px 12px 9px 0;color:var(--p-text-muted);">Cadena firmada</td>
+            <td style="padding:9px 0;font-family:var(--font-mono);color:var(--p-purple-dark);font-weight:600;">CURP | Curso | Folio</td>
+          </tr>
+          <tr style="border-bottom:1px solid var(--p-border);">
+            <td style="padding:9px 12px 9px 0;color:var(--p-text-muted);">Nonce</td>
+            <td style="padding:9px 0;font-family:var(--font-mono);color:var(--p-purple-dark);font-weight:600;">RFC 6979 (determinístico)</td>
+          </tr>
+          <tr>
+            <td style="padding:9px 12px 9px 0;color:var(--p-text-muted);">Verificación pública</td>
+            <td style="padding:9px 0;">
+              <a href="{{ url_for('verificar.verificar') }}"
+                 style="color:var(--p-purple);font-weight:600;font-size:12.5px;">
+                /verificar →
+              </a>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- Roles del sistema -->
+<div class="card">
+  <div class="card-header">
+    <h2 class="card-title">Roles y permisos</h2>
+  </div>
+  <table>
+    <thead>
+      <tr>
+        <th>Rol</th>
+        <th>Emitir certificados</th>
+        <th>Re-emitir PDF</th>
+        <th>Eliminar</th>
+        <th>Catálogo / CSV</th>
+        <th>Gestión de usuarios</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="badge badge-purple">admin</span></td>
+        <td style="text-align:center;">✅</td>
+        <td style="text-align:center;">✅</td>
+        <td style="text-align:center;">✅</td>
+        <td style="text-align:center;">✅</td>
+        <td style="text-align:center;">✅</td>
+      </tr>
+      <tr>
+        <td><span class="badge badge-blue">operator</span></td>
+        <td style="text-align:center;">✅</td>
+        <td style="text-align:center;">✅</td>
+        <td style="text-align:center;">—</td>
+        <td style="text-align:center;">✅ (solo editar)</td>
+        <td style="text-align:center;">—</td>
+      </tr>
+      <tr>
+        <td><span class="badge badge-gray">viewer</span></td>
+        <td style="text-align:center;">—</td>
+        <td style="text-align:center;">—</td>
+        <td style="text-align:center;">—</td>
+        <td style="text-align:center;">Solo lectura</td>
+        <td style="text-align:center;">—</td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+{% endblock %}

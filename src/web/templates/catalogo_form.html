@@ -1,0 +1,92 @@
+{% extends "base.html" %}
+
+{% block page_title %}{% if mode == 'nuevo' %}Nuevo Curso{% else %}Editar Curso{% endif %}{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <div>
+    <h1 class="page-title">{% if mode == 'nuevo' %}Nuevo Curso{% else %}Editar: {{ curso['Nombre del Curso'] }}{% endif %}</h1>
+    <p class="page-subtitle">{% if mode == 'nuevo' %}Agrega un nuevo curso al catálogo{% else %}Modifica la información del curso{% endif %}</p>
+  </div>
+  <a href="{{ url_for('catalogo.index') }}" class="btn btn-ghost">← Volver al catálogo</a>
+</div>
+
+{% if error %}
+<div class="alert alert-error" style="margin-bottom:20px;">{{ error }}</div>
+{% endif %}
+
+<div class="card" style="max-width:700px;">
+  <form method="post">
+    {% if mode == 'editar' %}
+    <div class="form-group" style="margin-bottom:18px;">
+      <label class="form-label" style="font-size:11.5px;text-transform:uppercase;letter-spacing:.5px;color:var(--p-text-muted);">ID de Curso</label>
+      <div style="font-size:15px;font-weight:700;font-family:var(--font-mono);color:var(--p-purple-dark);">
+        {{ curso['ID Curso'] }}
+        <span style="font-size:11px;font-weight:400;color:var(--p-text-muted);margin-left:6px;">(asignado automáticamente, no editable)</span>
+      </div>
+    </div>
+    {% endif %}
+
+    <div class="form-group" style="margin-bottom:18px;">
+      <label class="form-label" for="nombre">Nombre del Curso *</label>
+      <input class="form-input" type="text" id="nombre" name="nombre"
+             value="{{ curso['Nombre del Curso'] if curso else '' }}"
+             required maxlength="200" placeholder="Ej. Puericultura Avanzada">
+    </div>
+
+    <div class="grid-2" style="gap:16px;margin-bottom:18px;">
+      <div class="form-group">
+        <label class="form-label" for="tipo">Tipo / Formato</label>
+        <select class="form-input" id="tipo" name="tipo">
+          {% set tipos = ['Capacitación Técnica', 'Taller Práctico', 'Diplomado', 'Curso en línea', 'Certificación'] %}
+          {% for t in tipos %}
+          <option value="{{ t }}"
+            {% if curso and curso['Tipo / Formato'] == t %}selected{% endif %}>{{ t }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="form-group">
+        <label class="form-label" for="duracion">Duración (horas)</label>
+        <input class="form-input" type="number" id="duracion" name="duracion" min="1" max="9999"
+               value="{{ curso['Duración (horas)'] if curso else '' }}"
+               placeholder="Ej. 80">
+      </div>
+    </div>
+
+    <div class="grid-2" style="gap:16px;margin-bottom:18px;">
+      <div class="form-group">
+        <label class="form-label" for="modalidad">Modalidad</label>
+        <select class="form-input" id="modalidad" name="modalidad">
+          {% set mods = ['Presencial/Online', 'Presencial', 'En línea', 'Híbrido'] %}
+          {% for m in mods %}
+          <option value="{{ m }}"
+            {% if curso and curso['Modalidad'] == m %}selected{% endif %}>{{ m }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="form-group">
+        <label class="form-label" for="estado">Estado</label>
+        <select class="form-input" id="estado" name="estado">
+          <option value="Activo" {% if not curso or curso['Estado'] == 'Activo' %}selected{% endif %}>Activo</option>
+          <option value="Inactivo" {% if curso and curso['Estado'] == 'Inactivo' %}selected{% endif %}>Inactivo</option>
+          <option value="Próximamente" {% if curso and curso['Estado'] == 'Próximamente' %}selected{% endif %}>Próximamente</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="form-group" style="margin-bottom:24px;">
+      <label class="form-label" for="descripcion">Descripción</label>
+      <textarea class="form-input" id="descripcion" name="descripcion"
+                rows="4" maxlength="500"
+                placeholder="Describe brevemente el contenido y objetivos del curso.">{{ curso['Descripción'] if curso else '' }}</textarea>
+    </div>
+
+    <div style="display:flex;gap:10px;">
+      <button type="submit" class="btn btn-primary">
+        {% if mode == 'nuevo' %}Agregar curso{% else %}Guardar cambios{% endif %}
+      </button>
+      <a href="{{ url_for('catalogo.index') }}" class="btn btn-ghost">Cancelar</a>
+    </div>
+  </form>
+</div>
+{% endblock %}

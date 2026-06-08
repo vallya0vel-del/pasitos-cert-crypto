@@ -52,6 +52,28 @@
         Verificar folio
       </a>
 
+      <span class="nav-section-label">Datos</span>
+
+      <a href="{{ url_for('catalogo.index') }}"
+         class="nav-link {% if 'catalogo' in request.endpoint %}active{% endif %}">
+        {% include 'icons/catalog.svg' %}
+        Catálogo de cursos
+      </a>
+
+      {% if role in ['admin', 'operator'] %}
+      <a href="{{ url_for('datos.index') }}"
+         class="nav-link {% if 'datos' in request.endpoint %}active{% endif %}">
+        {% include 'icons/upload.svg' %}
+        Registros CSV
+      </a>
+      {% endif %}
+
+      <a href="{{ url_for('nosotros.index') }}"
+         class="nav-link {% if request.endpoint == 'nosotros.index' %}active{% endif %}">
+        {% include 'icons/info.svg' %}
+        Acerca de Pasitos
+      </a>
+
       {% if role == 'admin' %}
       <span class="nav-section-label">Administración</span>
       <a href="{{ url_for('admin.usuarios') }}"

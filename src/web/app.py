@@ -20,6 +20,9 @@ from .routes.dashboard import dashboard_bp
 from .routes.certificados import certificados_bp
 from .routes.admin import admin_bp
 from .routes.verificar import verificar_bp
+from .routes.catalogo import catalogo_bp
+from .routes.datos import datos_bp
+from .routes.nosotros import nosotros_bp
 
 
 def create_app() -> Flask:
@@ -44,5 +47,8 @@ def create_app() -> Flask:
     app.register_blueprint(certificados_bp)
     app.register_blueprint(admin_bp)
     app.register_blueprint(verificar_bp)
+    app.register_blueprint(catalogo_bp)
+    app.register_blueprint(datos_bp)
+    app.register_blueprint(nosotros_bp)
 
     return app

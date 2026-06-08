@@ -1,0 +1,89 @@
+{% extends "base.html" %}
+
+{% block page_title %}Catálogo de Cursos{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <div>
+    <h1 class="page-title">Catálogo de Cursos</h1>
+    <p class="page-subtitle">Gestión de cursos disponibles en el sistema</p>
+  </div>
+  <div style="display:flex;gap:10px;">
+    {% if role in ['admin','operator'] %}
+    <a href="{{ url_for('catalogo.nuevo') }}" class="btn btn-primary">+ Nuevo curso</a>
+    {% endif %}
+    <a href="{{ url_for('catalogo.exportar') }}" class="btn btn-ghost">⬇ Exportar CSV</a>
+  </div>
+</div>
+
+{% if cursos %}
+<div class="card" style="overflow:visible;">
+  <table>
+    <thead>
+      <tr>
+        <th>ID</th>
+        <th>Nombre del curso</th>
+        <th>Tipo</th>
+        <th>Duración</th>
+        <th>Modalidad</th>
+        <th>Estado</th>
+        {% if role in ['admin','operator'] %}
+        <th style="text-align:center;">Acciones</th>
+        {% endif %}
+      </tr>
+    </thead>
+    <tbody>
+      {% for c in cursos %}
+      <tr>
+        <td><span class="badge-mono">{{ c['ID Curso'] }}</span></td>
+        <td style="font-weight:600;color:var(--p-text);">{{ c['Nombre del Curso'] }}</td>
+        <td><span class="badge badge-blue">{{ c['Tipo / Formato'] }}</span></td>
+        <td>{{ c['Duración (horas)'] }} h</td>
+        <td>{{ c['Modalidad'] }}</td>
+        <td>
+          {% if c['Estado'] == 'Activo' %}
+            <span class="badge badge-green">Activo</span>
+          {% else %}
+            <span class="badge badge-gray">{{ c['Estado'] }}</span>
+          {% endif %}
+        </td>
+        {% if role in ['admin','operator'] %}
+        <td style="text-align:center;white-space:nowrap;">
+          <a href="{{ url_for('catalogo.editar', curso_id=c['ID Curso']) }}"
+             class="btn btn-ghost btn-sm" style="font-size:12px;">✏ Editar</a>
+          {% if role == 'admin' %}
+          <form method="post"
+                action="{{ url_for('catalogo.eliminar', curso_id=c['ID Curso']) }}"
+                style="display:inline;"
+                onsubmit="return confirm('¿Eliminar el curso {{ c['Nombre del Curso'] | replace("'", "\\'") }}?')">
+            <button type="submit" class="btn btn-danger btn-sm" style="font-size:12px;">✕ Eliminar</button>
+          </form>
+          {% endif %}
+        </td>
+        {% endif %}
+      </tr>
+      {% if c['Descripción'] %}
+      <tr style="background:var(--p-purple-pale);">
+        <td></td>
+        <td colspan="{% if role in ['admin','operator'] %}5{% else %}4{% endif %}"
+            style="font-size:12.5px;color:var(--p-text-muted);padding:6px 12px 10px;font-style:italic;">
+          {{ c['Descripción'] }}
+        </td>
+        {% if role in ['admin','operator'] %}<td></td>{% endif %}
+      </tr>
+      {% endif %}
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% else %}
+<div class="empty-state">
+  <div class="empty-icon">📚</div>
+  <h3>No hay cursos registrados</h3>
+  <p>Agrega el primer curso para comenzar.</p>
+  {% if role in ['admin','operator'] %}
+  <a href="{{ url_for('catalogo.nuevo') }}" class="btn btn-primary mt-4">+ Nuevo curso</a>
+  {% endif %}
+</div>
+{% endif %}
+{% endblock %}

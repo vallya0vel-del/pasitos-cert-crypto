@@ -1,0 +1,144 @@
+{% extends "base.html" %}
+
+{% block page_title %}Registros CSV{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <div>
+    <h1 class="page-title">Registros de Participantes</h1>
+    <p class="page-subtitle">Carga y previsualización del archivo <span style="font-family:var(--font-mono);font-size:12.5px;">registros_cursos.csv</span></p>
+  </div>
+</div>
+
+<!-- Upload card (ADMIN / OPERATOR only) -->
+{% if role in ['admin', 'operator'] %}
+<div class="card" style="margin-bottom:24px;">
+  <div class="card-header">
+    <h2 class="card-title">Subir nuevo CSV</h2>
+  </div>
+
+  <form method="post" action="{{ url_for('datos.subir') }}" enctype="multipart/form-data" id="upload-form">
+    <label class="upload-zone" for="archivo-input" id="upload-zone">
+      <input type="file" name="archivo" id="archivo-input" accept=".csv">
+      <svg class="upload-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"
+           fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/>
+        <polyline points="17 8 12 3 7 8"/>
+        <line x1="12" y1="3" x2="12" y2="15"/>
+      </svg>
+      <div class="upload-zone-title" id="upload-label">Arrastra un archivo .csv aquí o haz clic para elegir</div>
+      <div class="upload-zone-sub">Solo se acepta formato CSV · El archivo existente será respaldado automáticamente</div>
+    </label>
+
+    <div style="margin-top:14px;display:flex;gap:10px;align-items:center;">
+      <button type="submit" class="btn btn-primary" id="btn-subir" disabled>⬆ Subir CSV</button>
+      <span style="font-size:12.5px;color:var(--p-text-muted);">
+        El sistema valida que el archivo contenga la columna <strong>Nombre Completo</strong> antes de reemplazar el existente.
+      </span>
+    </div>
+  </form>
+</div>
+{% endif %}
+
+<!-- Current records preview -->
+{% if csv_exists %}
+<div class="card">
+  <div class="card-header" style="display:flex;justify-content:space-between;align-items:center;">
+    <div>
+      <h2 class="card-title">Registros actuales</h2>
+      <p class="card-subtitle">{{ registros|length }} registro(s) en <span style="font-family:var(--font-mono);font-size:12px;">{{ csv_name }}</span></p>
+    </div>
+    <div style="display:flex;gap:8px;align-items:center;">
+      <input type="text" class="search-input" id="reg-search"
+             placeholder="Filtrar registros…"
+             style="width:220px;"
+             oninput="filterTable()">
+    </div>
+  </div>
+
+  {% if registros %}
+  <div style="overflow-x:auto;">
+    <table id="reg-table">
+      <thead>
+        <tr>
+          {% for h in headers %}
+          <th>{{ h }}</th>
+          {% endfor %}
+        </tr>
+      </thead>
+      <tbody>
+        {% for r in registros %}
+        <tr>
+          {% for h in headers %}
+          <td>
+            {% set val = r.get(h, '') %}
+            {% if h == 'Resultado' %}
+              {% if val == 'Acreditado' %}
+                <span class="badge badge-green">{{ val }}</span>
+              {% elif val == 'No Acreditado' %}
+                <span class="badge badge-red">{{ val }}</span>
+              {% else %}
+                {{ val }}
+              {% endif %}
+            {% else %}
+              {{ val }}
+            {% endif %}
+          </td>
+          {% endfor %}
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% else %}
+  <div class="empty-state">
+    <div class="empty-icon">📄</div>
+    <h3>El archivo CSV está vacío o no tiene datos válidos</h3>
+  </div>
+  {% endif %}
+</div>
+
+{% else %}
+<div class="empty-state">
+  <div class="empty-icon">📂</div>
+  <h3>No hay archivo de registros</h3>
+  <p>Sube el archivo <span style="font-family:var(--font-mono);">registros_cursos.csv</span> para comenzar.</p>
+</div>
+{% endif %}
+{% endblock %}
+
+{% block scripts %}
+<script>
+(function () {
+  // File input feedback
+  const input   = document.getElementById('archivo-input');
+  const label   = document.getElementById('upload-label');
+  const btnSubir = document.getElementById('btn-subir');
+  const zone    = document.getElementById('upload-zone');
+
+  if (input) {
+    input.addEventListener('change', () => {
+      if (input.files.length > 0) {
+        label.textContent = input.files[0].name;
+        if (btnSubir) btnSubir.disabled = false;
+      }
+    });
+  }
+
+  // Drag-and-drop highlight
+  if (zone) {
+    zone.addEventListener('dragover',  e => { e.preventDefault(); zone.classList.add('drag-over'); });
+    zone.addEventListener('dragleave', () => zone.classList.remove('drag-over'));
+    zone.addEventListener('drop',      () => zone.classList.remove('drag-over'));
+  }
+})();
+
+function filterTable() {
+  const q    = document.getElementById('reg-search').value.toLowerCase();
+  const rows = document.querySelectorAll('#reg-table tbody tr');
+  rows.forEach(row => {
+    row.style.display = row.textContent.toLowerCase().includes(q) ? '' : 'none';
+  });
+}
+</script>
+{% endblock %}

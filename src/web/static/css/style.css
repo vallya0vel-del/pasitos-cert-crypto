@@ -959,3 +959,243 @@ input:focus, select:focus {
   grid-template-columns: 1fr 1fr;
   gap: 20px;
 }
+
+/* ─── File upload drop zone ───────────────────────────────────────── */
+.upload-zone {
+  border: 2px dashed var(--p-border);
+  border-radius: var(--radius);
+  padding: 36px 24px;
+  text-align: center;
+  background: var(--p-purple-pale);
+  transition: border-color var(--transition), background var(--transition);
+  cursor: pointer;
+  position: relative;
+}
+
+.upload-zone:hover,
+.upload-zone.drag-over {
+  border-color: var(--p-purple);
+  background: var(--p-purple-light);
+}
+
+.upload-zone input[type="file"] {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  cursor: pointer;
+  width: 100%;
+  height: 100%;
+  font-size: 0;
+}
+
+.upload-icon {
+  width: 40px;
+  height: 40px;
+  margin: 0 auto 12px;
+  color: var(--p-purple);
+  opacity: .7;
+}
+
+.upload-zone-title {
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--p-text);
+  margin-bottom: 4px;
+}
+
+.upload-zone-sub {
+  font-size: 13px;
+  color: var(--p-text-muted);
+}
+
+/* ─── Program cards grid ──────────────────────────────────────────── */
+.program-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 16px;
+  margin-bottom: 24px;
+}
+
+.program-card {
+  background: var(--p-white);
+  border: 1px solid var(--p-border);
+  border-radius: var(--radius);
+  border-top: 3px solid var(--p-purple);
+  padding: 18px 20px;
+  box-shadow: var(--shadow-sm);
+}
+
+.program-card.green { border-top-color: var(--p-green); }
+
+.program-card-title {
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--p-text);
+  margin-bottom: 3px;
+}
+
+.program-card-age {
+  font-size: 11.5px;
+  color: var(--p-text-muted);
+  margin-bottom: 10px;
+}
+
+.program-card-desc {
+  font-size: 13px;
+  color: var(--p-text-muted);
+  line-height: 1.55;
+  margin-bottom: 12px;
+}
+
+.program-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+}
+
+.program-tag {
+  font-size: 11px;
+  font-weight: 600;
+  padding: 2px 8px;
+  border-radius: 12px;
+  background: var(--p-purple-light);
+  color: var(--p-purple-dark);
+}
+
+.program-card.green .program-tag {
+  background: var(--p-green-light);
+  color: var(--p-green-dark);
+}
+
+/* ─── Testimonial cards ───────────────────────────────────────────── */
+.testimonial-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 16px;
+  margin-bottom: 24px;
+}
+
+.testimonial-card {
+  background: var(--p-white);
+  border: 1px solid var(--p-border);
+  border-radius: var(--radius);
+  padding: 20px;
+  box-shadow: var(--shadow-sm);
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.testimonial-quote {
+  font-size: 32px;
+  color: var(--p-purple-light);
+  line-height: 1;
+  font-family: Georgia, serif;
+  margin-bottom: -8px;
+}
+
+.testimonial-text {
+  font-size: 13.5px;
+  color: var(--p-text);
+  line-height: 1.6;
+  flex: 1;
+  font-style: italic;
+}
+
+.testimonial-author {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding-top: 10px;
+  border-top: 1px solid var(--p-border);
+}
+
+.testimonial-name {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--p-purple-dark);
+}
+
+.testimonial-meta {
+  font-size: 11.5px;
+  color: var(--p-text-muted);
+}
+
+.testimonial-programa {
+  display: inline-block;
+  margin-top: 4px;
+  font-size: 11px;
+  font-weight: 600;
+  padding: 1px 8px;
+  border-radius: 12px;
+  background: var(--p-purple-light);
+  color: var(--p-purple-dark);
+}
+
+/* ─── Org stat bar (nosotros page) ───────────────────────────────── */
+.org-stats {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 1px;
+  background: var(--p-border);
+  border-radius: var(--radius);
+  overflow: hidden;
+  margin-bottom: 28px;
+  border: 1px solid var(--p-border);
+}
+
+.org-stat {
+  background: var(--p-white);
+  padding: 20px;
+  text-align: center;
+}
+
+.org-stat-num {
+  font-size: 34px;
+  font-weight: 800;
+  color: var(--p-purple-dark);
+  line-height: 1;
+}
+
+.org-stat-label {
+  font-size: 12px;
+  color: var(--p-text-muted);
+  margin-top: 4px;
+  font-weight: 500;
+}
+
+/* ─── Mission/vision/values grid ─────────────────────────────────── */
+.mvv-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 16px;
+  margin-bottom: 28px;
+}
+
+.mvv-card {
+  background: var(--p-white);
+  border: 1px solid var(--p-border);
+  border-radius: var(--radius);
+  padding: 18px 20px;
+  box-shadow: var(--shadow-sm);
+}
+
+.mvv-icon {
+  font-size: 22px;
+  margin-bottom: 8px;
+}
+
+.mvv-title {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--p-purple-dark);
+  text-transform: uppercase;
+  letter-spacing: .5px;
+  margin-bottom: 8px;
+}
+
+.mvv-text {
+  font-size: 13px;
+  color: var(--p-text-muted);
+  line-height: 1.6;
+}
