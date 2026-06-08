@@ -2,10 +2,13 @@
 routes/certificados.py — Listado y emisión de certificados
 """
 
+import io
 import json
 import threading
+import zipfile
+import csv as csv_module
 from pathlib import Path
-from flask import Blueprint, render_template, request, redirect, url_for, session, flash, jsonify, send_file, abort
+from flask import Blueprint, render_template, request, redirect, url_for, session, flash, jsonify, send_file, abort, Response
 
 from .auth import login_required
 
@@ -264,3 +267,148 @@ def eliminar(folio: str):
 
     flash(f"Certificado {folio} eliminado correctamente.", "success")
     return redirect(url_for("certificados.index"))
+
+
+# ─── Inline preview (serves PDF with Content-Disposition: inline) ─────────────
+
+@certificados_bp.route("/ver/<folio>")
+@login_required()
+def ver(folio: str):
+    """Sirve el PDF combinado para visualización en línea (sin descarga forzada)."""
+    import sys
+    sys.path.insert(0, str(_BASE / "src"))
+
+    folio_safe  = folio.strip().upper().replace("/", "-")
+    merged      = _OUTPUT / f"documento_{folio_safe}.pdf"
+    cert_path   = _OUTPUT / f"certificado_{folio_safe}.pdf"
+    boleta_path = _OUTPUT / f"boleta_{folio_safe}.pdf"
+
+    if not merged.exists():
+        if cert_path.exists() and boleta_path.exists():
+            from pdf_generator.certificate_builder import merge_pdfs
+            merge_pdfs([cert_path, boleta_path], merged)
+        elif cert_path.exists():
+            return send_file(cert_path, as_attachment=False, mimetype="application/pdf")
+        else:
+            abort(404)
+
+    return send_file(merged, as_attachment=False, mimetype="application/pdf")
+
+
+# ─── Re-emit single certificate ───────────────────────────────────────────────
+
+@certificados_bp.route("/reemitir/<folio>", methods=["POST"])
+@login_required(roles=["admin", "operator"])
+def reemitir(folio: str):
+    """Regenera los PDFs de un folio ya firmado (no vuelve a firmar)."""
+    import sys
+    sys.path.insert(0, str(_BASE / "src"))
+
+    folio = folio.strip().upper()
+
+    if not _JSON.exists():
+        flash("No existe registro de certificados.", "error")
+        return redirect(url_for("certificados.index"))
+
+    try:
+        registro = json.loads(_JSON.read_text("utf-8"))
+    except Exception as e:
+        flash(f"Error al leer el registro: {e}", "error")
+        return redirect(url_for("certificados.index"))
+
+    entry = registro.get(folio)
+    if not entry:
+        flash(f"Folio '{folio}' no encontrado en el registro.", "error")
+        return redirect(url_for("certificados.index"))
+
+    # Reconstruir un pseudo-record desde la entrada del JSON
+    record = {
+        "Nombre Completo":      entry.get("nombre", ""),
+        "CURP":                 entry.get("curp", ""),
+        "Curso":                entry.get("curso", ""),
+        "No. de Certificado":   entry.get("no_cert", ""),
+        "Fecha de Emisión":     entry.get("fecha_emision", ""),
+        "Calificación (0-10)":  entry.get("calificacion", ""),
+        "Folio Verificación":   folio,
+        "Resultado":            "Acreditado",
+        "Módulo":               "Único",
+        "Fecha de Inicio":      "",
+        "Fecha de Término":     entry.get("fecha_emision", ""),
+        "Duración (horas)":     "—",
+        "Modalidad":            "—",
+    }
+
+    templates_dir = _BASE / "docs" / "templates"
+    firma_hex     = entry.get("firma_hex", "")
+    folio_safe    = folio.replace("/", "-")
+
+    try:
+        from pdf_generator.certificate_html import build_certificate_html
+        from pdf_generator.boleta_html import build_boleta_html
+        from pdf_generator.certificate_builder import merge_pdfs
+
+        cert_path   = build_certificate_html(record, firma_hex, _OUTPUT, templates_dir)
+        boleta_path = build_boleta_html(record, firma_hex, _OUTPUT, templates_dir)
+        merged_path = _OUTPUT / f"documento_{folio_safe}.pdf"
+        merge_pdfs([cert_path, boleta_path], merged_path)
+
+        flash(f"PDFs de {folio} regenerados correctamente.", "success")
+    except Exception as e:
+        flash(f"Error al regenerar PDFs: {e}", "error")
+
+    return redirect(url_for("certificados.index"))
+
+
+# ─── Export as CSV ────────────────────────────────────────────────────────────
+
+@certificados_bp.route("/exportar/csv")
+@login_required()
+def exportar_csv():
+    """Exporta el registro de certificados como archivo CSV."""
+    registros = _load_registro()
+    fields = ["folio", "no_cert", "nombre", "curp", "curso", "calificacion", "fecha_emision"]
+    headers = ["Folio", "No. Certificado", "Nombre", "CURP", "Curso", "Calificación", "Fecha Emisión"]
+
+    buf = io.StringIO()
+    writer = csv_module.DictWriter(buf, fieldnames=fields, extrasaction="ignore")
+    writer.writerow(dict(zip(fields, headers)))
+    writer.writerows(registros)
+
+    output = buf.getvalue().encode("utf-8-sig")
+    return Response(
+        output,
+        mimetype="text/csv",
+        headers={"Content-Disposition": "attachment; filename=certificados_pasitos.csv"},
+    )
+
+
+# ─── Export all PDFs as ZIP ───────────────────────────────────────────────────
+
+@certificados_bp.route("/exportar/zip")
+@login_required()
+def exportar_zip():
+    """Descarga todos los PDFs combinados en un único archivo ZIP."""
+    registros = _load_registro()
+    if not registros:
+        flash("No hay certificados para exportar.", "warning")
+        return redirect(url_for("certificados.index"))
+
+    buf = io.BytesIO()
+    with zipfile.ZipFile(buf, "w", zipfile.ZIP_DEFLATED) as zf:
+        for r in registros:
+            folio_safe = r["folio"].replace("/", "-")
+            merged = _OUTPUT / f"documento_{folio_safe}.pdf"
+            cert   = _OUTPUT / f"certificado_{folio_safe}.pdf"
+
+            if merged.exists():
+                zf.write(merged, f"Pasitos_{folio_safe}.pdf")
+            elif cert.exists():
+                zf.write(cert, f"certificado_{folio_safe}.pdf")
+
+    buf.seek(0)
+    return send_file(
+        buf,
+        as_attachment=True,
+        download_name="certificados_pasitos.zip",
+        mimetype="application/zip",
+    )

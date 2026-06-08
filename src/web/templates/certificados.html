@@ -8,18 +8,41 @@
     <h1>Registro de certificados</h1>
     <p>{{ registros | length }} certificado(s) con firma ECDSA almacenados.</p>
   </div>
-  {% if role in ['admin', 'operator'] %}
-  <a href="{{ url_for('certificados.emitir') }}" class="btn btn-primary">
-    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12l7-7 7 7"/></svg>
-    Emitir nuevos
-  </a>
-  {% endif %}
+  <div class="flex gap-3" style="flex-wrap:wrap;">
+    {% if role in ['admin', 'operator'] %}
+    <a href="{{ url_for('certificados.emitir') }}" class="btn btn-primary">
+      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12l7-7 7 7"/></svg>
+      Emitir nuevos
+    </a>
+    {% endif %}
+    {% if registros %}
+    <a href="{{ url_for('certificados.exportar_csv') }}" class="btn btn-outline" title="Descargar registro como CSV">
+      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+      Exportar CSV
+    </a>
+    <a href="{{ url_for('certificados.exportar_zip') }}" class="btn btn-outline" title="Descargar todos los PDFs en un ZIP">
+      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+      Descargar ZIP
+    </a>
+    {% endif %}
+  </div>
 </div>
+
+{% if registros %}
+<!-- ── Buscador ── -->
+<div class="search-bar">
+  <div class="search-input-wrap">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+    <input type="text" id="search-input" placeholder="Buscar por nombre, CURP, folio o curso…" autocomplete="off">
+  </div>
+  <span class="search-count" id="search-count">{{ registros | length }} resultado(s)</span>
+</div>
+{% endif %}
 
 <div class="card">
   <div class="table-wrap">
     {% if registros %}
-    <table>
+    <table id="certs-table">
       <thead>
         <tr>
           <th>No. certificado</th>
@@ -34,32 +57,50 @@
       </thead>
       <tbody>
         {% for r in registros %}
-        <tr>
+        <tr data-search="{{ r.nombre | lower }} {{ r.curp | lower }} {{ r.folio | lower }} {{ r.curso | lower }}">
           <td class="td-mono">{{ r.no_cert or '—' }}</td>
           <td style="font-weight: 600;">{{ r.nombre }}</td>
           <td class="td-mono" style="font-size: 11.5px;">{{ r.curp }}</td>
           <td>{{ r.curso }}</td>
-          <td>
-            <span class="badge badge-green">{{ r.calificacion }}/10</span>
-          </td>
+          <td><span class="badge badge-green">{{ r.calificacion }}/10</span></td>
           <td class="text-sm text-muted">{{ r.fecha_emision }}</td>
           <td class="td-mono">{{ r.folio }}</td>
           <td>
             <div class="flex gap-3" style="flex-wrap: nowrap;">
+              <!-- Vista previa -->
+              <button class="btn btn-outline btn-sm"
+                      onclick="openPreview('{{ r.folio }}', '{{ r.nombre }}')"
+                      title="Vista previa del documento">
+                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+              </button>
+              <!-- Descargar -->
               <a href="{{ url_for('certificados.descargar', folio=r.folio) }}"
-                 class="btn btn-primary btn-sm"
-                 title="Descargar certificado + boleta en un solo PDF">
+                 class="btn btn-primary btn-sm" title="Descargar PDF (certificado + boleta)">
                 <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
-                Descargar
               </a>
+              <!-- Verificar -->
               <a href="{{ url_for('verificar.verificar') }}?folio={{ r.folio }}"
-                 class="btn btn-outline btn-sm">Verificar</a>
+                 class="btn btn-outline btn-sm" title="Verificar firma ECDSA">
+                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+              </a>
+              {% if role in ['admin', 'operator'] %}
+              <!-- Re-emitir -->
+              <form method="POST" action="{{ url_for('certificados.reemitir', folio=r.folio) }}"
+                    onsubmit="return confirm('¿Regenerar los PDFs de {{ r.folio }}? No se vuelve a firmar.');"
+                    style="display:inline;">
+                <button type="submit" class="btn btn-outline btn-sm" title="Regenerar PDFs sin re-firmar">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 11-2.12-9.36L23 10"/></svg>
+                </button>
+              </form>
+              {% endif %}
               {% if role == 'admin' %}
-              <form method="POST"
-                    action="{{ url_for('certificados.eliminar', folio=r.folio) }}"
+              <!-- Eliminar -->
+              <form method="POST" action="{{ url_for('certificados.eliminar', folio=r.folio) }}"
                     onsubmit="return confirm('¿Eliminar el certificado {{ r.folio }} de {{ r.nombre }}?\nEsta acción no se puede deshacer.');"
                     style="display:inline;">
-                <button type="submit" class="btn btn-danger btn-sm">Eliminar</button>
+                <button type="submit" class="btn btn-danger btn-sm" title="Eliminar certificado y PDFs">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6"/><path d="M10 11v6M14 11v6"/></svg>
+                </button>
               </form>
               {% endif %}
             </div>
@@ -68,6 +109,9 @@
         {% endfor %}
       </tbody>
     </table>
+    <p id="no-results" style="display:none; padding: 24px; text-align:center;" class="text-muted text-sm">
+      Sin resultados para la búsqueda.
+    </p>
     {% else %}
     <div class="card-body text-muted text-sm" style="padding: 32px; text-align: center;">
       No hay certificados emitidos en el sistema aún.<br><br>
@@ -82,7 +126,86 @@
 {% if registros %}
 <p class="text-sm text-muted mt-4">
   El PDF descargable contiene el <strong>Certificado de Competencia Laboral</strong> y la
-  <strong>Boleta de Evaluación</strong> en un solo archivo de dos páginas.
+  <strong>Boleta de Evaluación</strong> en un archivo de dos páginas.
 </p>
 {% endif %}
+
+<!-- ── Modal de vista previa ── -->
+<div class="modal-backdrop" id="preview-modal" style="display:none;" onclick="closePreviewOnBackdrop(event)">
+  <div class="modal">
+    <div class="modal-header">
+      <h3 id="modal-title">Vista previa</h3>
+      <div class="flex gap-3 items-center">
+        <a id="modal-download-link" href="#" class="btn btn-primary btn-sm">
+          <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+          Descargar
+        </a>
+        <button class="modal-close" onclick="closePreview()">
+          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+        </button>
+      </div>
+    </div>
+    <div class="modal-body">
+      <iframe id="preview-frame" src="" title="Vista previa del certificado"></iframe>
+    </div>
+  </div>
+</div>
+
+{% endblock %}
+
+{% block scripts %}
+<script>
+// ── Búsqueda en tiempo real ──
+const searchInput = document.getElementById('search-input');
+const countEl     = document.getElementById('search-count');
+const noResults   = document.getElementById('no-results');
+
+if (searchInput) {
+  searchInput.addEventListener('input', function () {
+    const q    = this.value.toLowerCase().trim();
+    const rows = document.querySelectorAll('#certs-table tbody tr');
+    let visible = 0;
+
+    rows.forEach(row => {
+      const text = row.getAttribute('data-search') || '';
+      const show = !q || text.includes(q);
+      row.style.display = show ? '' : 'none';
+      if (show) visible++;
+    });
+
+    if (countEl) countEl.textContent = visible + ' resultado(s)';
+    if (noResults) noResults.style.display = visible === 0 ? 'block' : 'none';
+  });
+}
+
+// ── Modal de vista previa ──
+const modal   = document.getElementById('preview-modal');
+const frame   = document.getElementById('preview-frame');
+const mTitle  = document.getElementById('modal-title');
+const mDl     = document.getElementById('modal-download-link');
+
+function openPreview(folio, nombre) {
+  const viewUrl = '/ver/' + encodeURIComponent(folio);
+  const dlUrl   = '/descargar/' + encodeURIComponent(folio);
+  frame.src     = viewUrl;
+  mTitle.textContent = nombre;
+  mDl.href      = dlUrl;
+  modal.style.display = 'flex';
+  document.body.style.overflow = 'hidden';
+}
+
+function closePreview() {
+  modal.style.display = 'none';
+  frame.src = '';
+  document.body.style.overflow = '';
+}
+
+function closePreviewOnBackdrop(e) {
+  if (e.target === modal) closePreview();
+}
+
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape') closePreview();
+});
+</script>
 {% endblock %}
