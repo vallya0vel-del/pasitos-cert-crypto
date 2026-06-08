@@ -114,7 +114,8 @@ def _run_emit():
     try:
         from crypto.keys_manager import load_private_key, load_public_key, sign_data
         from data_manager.csv_reader import read_acreditados, read_catalogo, enrich_with_catalog, generate_certificate_hash
-        from pdf_generator.certificate_builder import build_certificate, merge_pdfs
+        from pdf_generator.certificate_html import build_certificate_html
+        from pdf_generator.certificate_builder import merge_pdfs
         from pdf_generator.boleta_html import build_boleta_html
 
         _OUTPUT.mkdir(parents=True, exist_ok=True)
@@ -152,11 +153,11 @@ def _run_emit():
             firma      = sign_data(priv, cert_hash.encode("utf-8"))
             firma_hex  = firma.hex()
 
-            cert_path   = build_certificate(record, firma_hex, _OUTPUT, templates_dir)
+            folio_safe  = folio.replace("/", "-")
+            cert_path   = build_certificate_html(record, firma_hex, _OUTPUT, templates_dir)
             boleta_path = build_boleta_html(record, firma_hex, _OUTPUT, templates_dir)
 
             # Fusionar certificado + boleta en un único PDF descargable
-            folio_safe  = folio.replace("/", "-")
             merged_path = _OUTPUT / f"documento_{folio_safe}.pdf"
             merge_pdfs([cert_path, boleta_path], merged_path)
 
@@ -170,7 +171,7 @@ def _run_emit():
                 "hash":         cert_hash,
                 "firma_hex":    firma_hex,
             }
-            log.append(f"  ✓ Certificado, boleta y PDF combinado generados.")
+            log.append(f"  ✓ Certificado HTML, boleta y PDF combinado generados.")
 
         _JSON.write_text(json.dumps(emitidos, ensure_ascii=False, indent=2), encoding="utf-8")
         log.append(f"Registro guardado en {_JSON.name}.")
@@ -201,19 +202,65 @@ def _load_registro() -> list[dict]:
 @certificados_bp.route("/descargar/<folio>")
 @login_required()
 def descargar(folio: str):
-    """Sirve el PDF combinado (certificado + boleta) de un folio dado."""
-    folio_safe = folio.strip().upper().replace("/", "-")
-    # Intentar PDF combinado primero, luego solo certificado
-    merged = _OUTPUT / f"documento_{folio_safe}.pdf"
-    cert   = _OUTPUT / f"certificado_{folio_safe}.pdf"
+    """Sirve el PDF combinado (certificado + boleta) de un folio dado.
+    Si el merged no existe aún, lo genera sobre la marcha."""
+    import sys
+    sys.path.insert(0, str(_BASE / "src"))
 
-    if merged.exists():
-        path = merged
-        name = f"Pasitos_{folio_safe}.pdf"
-    elif cert.exists():
-        path = cert
-        name = f"certificado_{folio_safe}.pdf"
-    else:
-        abort(404)
+    folio_safe  = folio.strip().upper().replace("/", "-")
+    merged      = _OUTPUT / f"documento_{folio_safe}.pdf"
+    cert_path   = _OUTPUT / f"certificado_{folio_safe}.pdf"
+    boleta_path = _OUTPUT / f"boleta_{folio_safe}.pdf"
 
-    return send_file(path, as_attachment=True, download_name=name, mimetype="application/pdf")
+    if not merged.exists():
+        # Intentar construir el merged si ambas piezas existen
+        if cert_path.exists() and boleta_path.exists():
+            from pdf_generator.certificate_builder import merge_pdfs
+            merge_pdfs([cert_path, boleta_path], merged)
+        elif cert_path.exists():
+            # Solo certificado disponible
+            return send_file(cert_path, as_attachment=True,
+                             download_name=f"certificado_{folio_safe}.pdf",
+                             mimetype="application/pdf")
+        else:
+            abort(404)
+
+    return send_file(merged, as_attachment=True,
+                     download_name=f"Pasitos_{folio_safe}.pdf",
+                     mimetype="application/pdf")
+
+
+@certificados_bp.route("/eliminar/<folio>", methods=["POST"])
+@login_required(roles=["admin"])
+def eliminar(folio: str):
+    """Elimina un certificado del registro JSON y borra sus PDFs."""
+    folio      = folio.strip().upper()
+    folio_safe = folio.replace("/", "-")
+
+    if not _JSON.exists():
+        flash("No existe registro de certificados.", "error")
+        return redirect(url_for("certificados.index"))
+
+    try:
+        registro = json.loads(_JSON.read_text("utf-8"))
+    except Exception as e:
+        flash(f"Error al leer el registro: {e}", "error")
+        return redirect(url_for("certificados.index"))
+
+    if folio not in registro:
+        flash(f"Folio '{folio}' no encontrado.", "error")
+        return redirect(url_for("certificados.index"))
+
+    del registro[folio]
+    _JSON.write_text(json.dumps(registro, ensure_ascii=False, indent=2), encoding="utf-8")
+
+    # Borrar PDFs asociados
+    for pattern in [f"certificado_{folio_safe}.pdf",
+                    f"boleta_{folio_safe}.pdf",
+                    f"documento_{folio_safe}.pdf"]:
+        p = _OUTPUT / pattern
+        if p.exists():
+            p.unlink()
+
+    flash(f"Certificado {folio} eliminado correctamente.", "success")
+    return redirect(url_for("certificados.index"))

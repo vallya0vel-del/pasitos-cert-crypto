@@ -54,6 +54,14 @@
               </a>
               <a href="{{ url_for('verificar.verificar') }}?folio={{ r.folio }}"
                  class="btn btn-outline btn-sm">Verificar</a>
+              {% if role == 'admin' %}
+              <form method="POST"
+                    action="{{ url_for('certificados.eliminar', folio=r.folio) }}"
+                    onsubmit="return confirm('¿Eliminar el certificado {{ r.folio }} de {{ r.nombre }}?\nEsta acción no se puede deshacer.');"
+                    style="display:inline;">
+                <button type="submit" class="btn btn-danger btn-sm">Eliminar</button>
+              </form>
+              {% endif %}
             </div>
           </td>
         </tr>
