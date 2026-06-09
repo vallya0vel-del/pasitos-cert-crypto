@@ -62,6 +62,9 @@ ENV/
 # ─── Sesiones Flask ───────────────────────────────────────────────────────────
 .flask_sessions/
 
+# ─── Archivos locales / presentaciones ────────────────────────────────────────
+tools/presentacion.html
+
 # ─── SO ───────────────────────────────────────────────────────────────────────
 .DS_Store
 Thumbs.db
