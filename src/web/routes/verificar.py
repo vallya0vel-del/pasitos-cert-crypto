@@ -31,9 +31,6 @@ def verificar():
 
 def _verificar_folio(folio: str) -> dict:
     """Verifica un folio y retorna un dict con el resultado."""
-    import sys
-    sys.path.insert(0, str(_BASE / "src"))
-
     if not _JSON.exists():
         return {"estado": "error", "mensaje": "No existe un registro de certificados en el sistema."}
 

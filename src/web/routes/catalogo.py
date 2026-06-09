@@ -21,6 +21,15 @@ _CATALOGO    = _BASE / "data" / "catalogo_cursos.csv"
 _FIELDS      = ["ID Curso", "Nombre del Curso", "Tipo / Formato",
                 "Duración (horas)", "Modalidad", "Descripción", "Estado"]
 
+_FORMULA_CHARS = ("=", "+", "-", "@", "\t", "\r")
+
+
+def _csv_safe(value: str) -> str:
+    """Prefix cells that would be interpreted as spreadsheet formulas with a tab."""
+    v = str(value)
+    return "\t" + v if v.startswith(_FORMULA_CHARS) else v
+
+
 # ─── Helpers ──────────────────────────────────────────────────────────────────
 
 def _read_cursos() -> list[dict]:
@@ -178,7 +187,8 @@ def exportar():
     buf = io.StringIO()
     writer = csv_module.DictWriter(buf, fieldnames=_FIELDS, extrasaction="ignore")
     writer.writeheader()
-    writer.writerows(cursos)
+    for curso in cursos:
+        writer.writerow({k: _csv_safe(v) for k, v in curso.items()})
     return Response(
         buf.getvalue().encode("utf-8-sig"),
         mimetype="text/csv",

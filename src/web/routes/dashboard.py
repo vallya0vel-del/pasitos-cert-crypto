@@ -57,8 +57,6 @@ def _build_stats() -> dict:
     # Totales del CSV
     csv_path = _DATA / "registros_cursos.csv"
     if csv_path.exists():
-        import sys
-        sys.path.insert(0, str(_BASE / "src"))
         try:
             from data_manager.csv_reader import read_acreditados
             import csv

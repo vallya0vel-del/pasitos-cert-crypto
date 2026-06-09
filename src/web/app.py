@@ -48,6 +48,9 @@ def create_app() -> Flask:
     app.config["SESSION_FILE_DIR"] = str(Path(__file__).parent.parent.parent / ".flask_sessions")
     app.config["SESSION_PERMANENT"] = False
     app.config["SESSION_USE_SIGNER"] = True
+    app.config["MAX_CONTENT_LENGTH"] = 5 * 1024 * 1024   # 5 MB — rechazo de uploads gigantes
+    app.config["SESSION_COOKIE_HTTPONLY"] = True           # JS no puede leer la cookie
+    app.config["SESSION_COOKIE_SAMESITE"] = "Lax"         # bloquea envío cross-site
 
     Session(app)
 

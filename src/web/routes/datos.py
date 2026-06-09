@@ -3,7 +3,6 @@ routes/datos.py — Carga de CSV de registros y vista previa
 """
 
 import csv as csv_module
-import io
 import shutil
 from datetime import datetime
 from pathlib import Path

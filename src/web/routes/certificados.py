@@ -53,8 +53,6 @@ def emitir():
                 flash("Solo el ADMIN puede generar llaves.", "error")
                 return redirect(url_for("certificados.emitir"))
             try:
-                import sys
-                sys.path.insert(0, str(_BASE / "src"))
                 from crypto.keys_manager import generate_key_pair, save_private_key, save_public_key
                 priv, pub = generate_key_pair()
                 _KEYS.mkdir(parents=True, exist_ok=True)
@@ -109,9 +107,6 @@ def emitir_poll():
 
 def _run_emit():
     """Hilo de fondo que corre el proceso de emisión."""
-    import sys
-    sys.path.insert(0, str(_BASE / "src"))
-
     log = _emit_status["log"]
 
     try:
@@ -207,9 +202,6 @@ def _load_registro() -> list[dict]:
 def descargar(folio: str):
     """Sirve el PDF combinado (certificado + boleta) de un folio dado.
     Si el merged no existe aún, lo genera sobre la marcha."""
-    import sys
-    sys.path.insert(0, str(_BASE / "src"))
-
     folio_safe  = folio.strip().upper().replace("/", "-")
     merged      = _OUTPUT / f"documento_{folio_safe}.pdf"
     cert_path   = _OUTPUT / f"certificado_{folio_safe}.pdf"
@@ -275,9 +267,6 @@ def eliminar(folio: str):
 @login_required()
 def ver(folio: str):
     """Sirve el PDF combinado para visualización en línea (sin descarga forzada)."""
-    import sys
-    sys.path.insert(0, str(_BASE / "src"))
-
     folio_safe  = folio.strip().upper().replace("/", "-")
     merged      = _OUTPUT / f"documento_{folio_safe}.pdf"
     cert_path   = _OUTPUT / f"certificado_{folio_safe}.pdf"
@@ -301,9 +290,6 @@ def ver(folio: str):
 @login_required(roles=["admin", "operator"])
 def reemitir(folio: str):
     """Regenera los PDFs de un folio ya firmado (no vuelve a firmar)."""
-    import sys
-    sys.path.insert(0, str(_BASE / "src"))
-
     folio = folio.strip().upper()
 
     if not _JSON.exists():
@@ -366,13 +352,20 @@ def reemitir(folio: str):
 def exportar_csv():
     """Exporta el registro de certificados como archivo CSV."""
     registros = _load_registro()
-    fields = ["folio", "no_cert", "nombre", "curp", "curso", "calificacion", "fecha_emision"]
+    fields  = ["folio", "no_cert", "nombre", "curp", "curso", "calificacion", "fecha_emision"]
     headers = ["Folio", "No. Certificado", "Nombre", "CURP", "Curso", "Calificación", "Fecha Emisión"]
+
+    _formula_chars = ("=", "+", "-", "@", "\t", "\r")
+
+    def _csv_safe(v: str) -> str:
+        v = str(v)
+        return "\t" + v if v.startswith(_formula_chars) else v
 
     buf = io.StringIO()
     writer = csv_module.DictWriter(buf, fieldnames=fields, extrasaction="ignore")
     writer.writerow(dict(zip(fields, headers)))
-    writer.writerows(registros)
+    for r in registros:
+        writer.writerow({k: _csv_safe(r.get(k, "")) for k in fields})
 
     output = buf.getvalue().encode("utf-8-sig")
     return Response(
