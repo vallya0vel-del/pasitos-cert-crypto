@@ -14,7 +14,6 @@ from pathlib import Path
 import qrcode
 import qrcode.constants
 from jinja2 import Environment, FileSystemLoader
-from playwright.sync_api import sync_playwright
 
 _TEMPLATE_NAME = "certificado.html"
 
@@ -104,6 +103,7 @@ def build_certificate_html(
 
     html = render_certificado_html(record, Path(templates_dir))
 
+    from playwright.sync_api import sync_playwright
     with sync_playwright() as p:
         browser = p.chromium.launch()
         page    = browser.new_page()

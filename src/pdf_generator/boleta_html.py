@@ -19,7 +19,6 @@ import qrcode
 import qrcode.constants
 from jinja2 import Environment, FileSystemLoader
 from PIL import Image
-from playwright.sync_api import sync_playwright
 
 # ── Rutas ─────────────────────────────────────────────────────────────────────
 _TEMPLATES_DIR = Path(__file__).parent.parent.parent / "docs" / "templates"
@@ -159,6 +158,7 @@ def build_boleta_html(
 
     html_content = render_boleta_html(record, signature_hex, Path(templates_dir))
 
+    from playwright.sync_api import sync_playwright
     with sync_playwright() as p:
         browser = p.chromium.launch()
         page    = browser.new_page()
@@ -188,6 +188,7 @@ def build_boleta_preview(
 
     html_content = render_boleta_html(record, signature_hex, Path(templates_dir))
 
+    from playwright.sync_api import sync_playwright
     with sync_playwright() as p:
         browser  = p.chromium.launch()
         page     = browser.new_page(viewport={"width": 1280, "height": 853})
