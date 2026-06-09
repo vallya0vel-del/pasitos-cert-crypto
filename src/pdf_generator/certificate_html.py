@@ -34,16 +34,7 @@ def _fmt_largo(fecha: str) -> str:
 
 
 def _qr_data_url(folio: str) -> str:
-    subject = f"Verificación de certificado {folio}"
-    body    = (
-        f"Solicito verificar la autenticidad del certificado con folio {folio}, "
-        f"emitido por Pasitos Education & Health A.C."
-    )
-    payload = (
-        f"mailto:info@pasitoseducation.com"
-        f"?subject={subject.replace(' ', '%20')}"
-        f"&body={body.replace(' ', '%20').replace(',', '%2C').replace('&', '%26')}"
-    )
+    payload = f"http://localhost:5000/verificar?folio={folio}"
     qr = qrcode.QRCode(
         version=None,
         error_correction=qrcode.constants.ERROR_CORRECT_M,
